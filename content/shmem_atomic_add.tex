@@ -7,14 +7,12 @@
 \begin{C11synopsis}
 void shmem_atomic_add(TYPE *dest, TYPE value, int pe);
 \end{C11synopsis}
-where \TYPE{} is one of the standard \ac{AMO} types specified by
-Table~\ref{stdamotypes}.
+where \TYPE{} is one of the standard \ac{AMO} types specified by Table~\ref{stdamotypes}.
 
 \begin{Csynopsis}
 void shmem_<TYPENAME>_atomic_add(TYPE *dest, TYPE value, int pe);
 \end{Csynopsis}
-where \TYPE{} is one of the standard \ac{AMO} types and has a corresponding
-\TYPENAME{} specified by Table~\ref{stdamotypes}.
+where \TYPE{} is one of the standard \ac{AMO} types and has a corresponding \TYPENAME{} specified by Table~\ref{stdamotypes}.
 
 \begin{Fsynopsis}
 INTEGER pe
@@ -39,8 +37,7 @@ CALL SHMEM_INT8_ADD(dest, value_i8, pe)
 
 \apidescription{
     The \FUNC{shmem\_atomic\_add} routine performs an atomic add operation. It adds
-    \VAR{value} to \dest{} on \ac{PE} \VAR{pe} and atomically updates the \dest{}
-    without returning the value.
+    \VAR{value} to \dest{} on \ac{PE} \VAR{pe} and atomically updates the \dest{} without returning the value.
  }
 
 \apidesctable{

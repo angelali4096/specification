@@ -64,6 +64,7 @@ CALL SHMEM_REAL_PUT(dest, source, nelems, pe)
     The \dest{} and \source{} data objects must conform to certain typing
     constraints, which are as follows:}
     {Routine}{Data type of \VAR{dest} and \VAR{source}}
+
     \apitablerow{shmem\_putmem}{\Fortran: Any noncharacter type. \Cstd: Any
         data  type.  nelems is scaled in bytes.}
     \apitablerow{shmem\_put4, shmem\_put32}{Any noncharacter type
@@ -76,8 +77,7 @@ CALL SHMEM_REAL_PUT(dest, source, nelems, pe)
         has a storage size equal to \CONST{64} bits.}
     \apitablerow{shmem\_put128}{Any noncharacter type that has a
         storage size equal to \CONST{128} bits.}
-    \apitablerow{SHMEM\_CHARACTER\_PUT}{Elements of type character.  \VAR{nelems}
-    is  the number  of	 characters to transfer. The actual character lengths of
+    \apitablerow{SHMEM\_CHARACTER\_PUT}{Elements of type character.  \VAR{nelems} is  the number  of	 characters to transfer. The actual character lengths of
     the \source{} and \dest{} variables are ignored. }
     \apitablerow{SHMEM\_COMPLEX\_PUT}{Elements of type complex of default size.}
     \apitablerow{SHMEM\_DOUBLE\_PUT}{Elements of type double precision. }
@@ -88,6 +88,7 @@ CALL SHMEM_REAL_PUT(dest, source, nelems, pe)
 \apireturnvalues{
     None.
 }
+
 \apinotes{
     If you are using \Fortran, data types must be of default size.  For example,
     a real variable must be declared as \CONST{REAL},  \CONST{REAL*4},  or

@@ -1,8 +1,5 @@
 \apisummary{ 
-    Called at the beginning of an \openshmem program to initialize the execution
-    environment. This routine is deprecated and is provided for backwards
-    compatibility. Implementations must include it, and the routine should
-    function properly and may notify the user about deprecation of its use.
+    Called at the beginning of an \openshmem program to initialize the execution environment. This routine is deprecated and is provided for backwards compatibility. Implementations must include it, and the routine should function properly and may notify the user about deprecation of its use.
 }
 
 \begin{apidefinition}
@@ -48,7 +45,7 @@ CALL START_PES(npes)
 
 \begin{apiexamples}
 
-\apicexample
+\apifexample
     { This is a simple program that calls \FUNC{start\_pes}:}
     {./example_code/shmem_startpes_example.f90}
     {} 

@@ -1,6 +1,5 @@
 \apisummary{
-    shmem\_alltoalls is a collective routine where each \ac{PE} exchanges a fixed amount of strided data with all other
-    \acp{PE} in the \activeset.
+    shmem\_alltoalls is a collective routine where each \ac{PE} exchanges a fixed amount of strided data with all other \acp{PE} in the \activeset.
 }
 
 \begin{apidefinition}
@@ -65,8 +64,8 @@ CALL SHMEM_ALLTOALLS64(dest, source, dst, sst, nelems, PE_start, logPE_stride, P
     with all other \acp{PE} in the set. Both strides, \VAR{dst} and \VAR{sst}, must be greater
     than or equal to \CONST{1}.
     Given a \ac{PE} \VAR{i} that is the \kth PE in the active set and a \ac{PE}
-    \VAR{j} that is the \lth \ac{PE} in the active set,
-    \ac{PE} \VAR{i} sends the \VAR{sst}*\lth block of the \VAR{source} data object to
+    \VAR{j} that is the \VAR{l}th \ac{PE} in the active set,
+    \ac{PE} \VAR{i} sends the \VAR{sst}*\VAR{l}th block of the \VAR{source} data object to
     the \VAR{dst}*\kth block of the \VAR{dest} data object on
     \ac{PE} \VAR{j}.
 
@@ -79,7 +78,7 @@ CALL SHMEM_ALLTOALLS64(dest, source, dst, sst, nelems, PE_start, logPE_stride, P
     \VAR{logPE\_stride}, and \VAR{PE\_size} must be equal on all \acp{PE} in the
     \activeset. The same \VAR{dest} and \VAR{source} data objects, and the same
     \VAR{pSync} work array must be passed to all \acp{PE} in the \activeset.
-    
+
     Before any \ac{PE} calls to a \FUNC{shmem\_alltoalls} routine, the following
     conditions must exist (synchronization via a barrier or some other method is
     often needed to ensure this): The \VAR{pSync} array on all \acp{PE} in the
@@ -87,12 +86,12 @@ CALL SHMEM_ALLTOALLS64(dest, source, dst, sst, nelems, PE_start, logPE_stride, P
     \FUNC{shmem\_alltoalls} routine.  The \VAR{dest} data object on
     all \acp{PE} in the \activeset{} is ready to accept the
     \FUNC{shmem\_alltoalls} data.
-    
+
     Upon return from a \FUNC{shmem\_alltoalls} routine, the following is true for
     the local PE: Its \VAR{dest} symmetric data object is completely updated and
     the data has been copied out of the \VAR{source} data object.
     The values in the \VAR{pSync} array are restored to the original values.
-} 
+}
 
 \apidesctable{
 The  \dest{}  and \source{} data  objects must conform to certain typing

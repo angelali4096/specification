@@ -45,8 +45,7 @@ CALL SHMEM_BARRIER(PE_start, logPE_stride, PE_size, pSync)
     only \acp{PE} in the \activeset call the routine.  If a \ac{PE} not  in  the
     \activeset calls an \openshmem collective routine, undefined behavior results.
     
-    The values of arguments \VAR{PE\_start}, \VAR{logPE\_stride}, and \VAR{PE\_size}
-    must be equal on all \acp{PE} in the \activeset.  The same work array must be
+    The values of arguments \VAR{PE\_start}, \VAR{logPE\_stride}, and \VAR{PE\_size}    must be equal on all \acp{PE} in the \activeset.  The same work array must be
     passed in \VAR{pSync} to all \acp{PE} in the \activeset.
     
     \FUNC{shmem\_barrier} ensures that all previously issued stores and remote
