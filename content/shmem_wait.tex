@@ -12,7 +12,8 @@ void shmem_wait_until(TYPE *ivar, shmem_cmp_t cmp, TYPE cmp_value);
 void shmem_wait(TYPE *ivar, TYPE cmp_value);
 \end{CsynopsisCol}
 \end{DeprecateBlock}
-where \TYPE{} is one of the point-to-point synchronization types specified by Table \ref{p2psynctypes}.
+where \TYPE{} is one of the point-to-point synchronization types specified by
+Table \ref{p2psynctypes}.
 
 \begin{Csynopsis}
 void shmem_<TYPENAME>_wait_until(TYPE *ivar, shmem_cmp_t cmp, TYPE cmp_value);
@@ -22,7 +23,8 @@ void shmem_<TYPENAME>_wait_until(TYPE *ivar, shmem_cmp_t cmp, TYPE cmp_value);
 void shmem_<TYPENAME>_wait(TYPE *ivar, TYPE cmp_value);
 \end{CsynopsisCol}
 \end{DeprecateBlock}
-where \TYPE{} is one of the point-to-point synchronization types and has a corresponding \TYPENAME{} specified by Table \ref{p2psynctypes}.
+where \TYPE{} is one of the point-to-point synchronization types and has a
+corresponding \TYPENAME{} specified by Table \ref{p2psynctypes}.
 
 \begin{Fsynopsis}
 CALL SHMEM_INT4_WAIT(ivar, cmp_value)
@@ -36,14 +38,14 @@ CALL SHMEM_WAIT_UNTIL(ivar, cmp, cmp_value)
 \begin{apiarguments}
 
 \apiargument{OUT}{ivar}{A remotely accessible integer variable that is being updated
-    by another \ac{PE}.  If you are using \CorCpp, the type of \VAR{ivar} should
+    by another \ac{PE}.  When using \CorCpp, the type of \VAR{ivar} should
     match that implied in the SYNOPSIS section.} 
 \apiargument{IN}{cmp}{The compare operator that compares \VAR{ivar} with
-  \VAR{cmp\_value}.  If you are using \Fortran, it must  be of default kind.
-  If you are using \CorCpp, it must be of type \CTYPE{shmem\_cmp\_t}.}
-\apiargument{IN}{cmp\_value}{\VAR{cmp\_value} must be of type integer.  If you are
+  \VAR{cmp\_value}.  When using \Fortran, it must  be of default kind.
+  When using \CorCpp, it must be of type \CTYPE{shmem\_cmp\_t}.}
+\apiargument{IN}{cmp\_value}{\VAR{cmp\_value} must be of type integer.  When
     using \CorCpp, the type of \VAR{cmp\_value} should match that implied in the
-    SYNOPSIS section.  If  you are using \Fortran, cmp\_value must be an integer of
+    SYNOPSIS section.  When using \Fortran, cmp\_value must be an integer of
     the same size and kind as \VAR{ivar}.}
 
 \end{apiarguments}
@@ -66,7 +68,7 @@ CALL SHMEM_WAIT_UNTIL(ivar, cmp, cmp_value)
 
 
 \apidesctable{
-    If you are using \Fortran, \VAR{ivar} must be a specific sized integer type
+    When using \Fortran, \VAR{ivar} must be a specific sized integer type
     according to the routine being called, as follows:
 }{Routine}{Data type}
 

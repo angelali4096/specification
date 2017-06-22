@@ -5,7 +5,6 @@ import os
 import string
 import datetime
 
-
 boldWordsC = {"void", "int", "const", "size_t", "short", "ptrdiff_t", "long", "TYPE", "shmem_global_exit(int"}
 boldWordsF = {"INTEGER", "CALL", "POINTER", "LOGICAL", "INTEGER*4",
 				"INTEGER*8", "REAL*4", "REAL*8", "CHARACTER"}
@@ -38,10 +37,11 @@ def generalReplacements(tex):
 	tex = tex.replace("\\SIZE{}", "SIZE")
 	tex = tex.replace("\\activeset.", "\n.IR \"Active set\" .\n")
 	tex = tex.replace("\\activeset{}", "\\activeset")
+	tex = tex.replace("\\activeset", "\n.I \"Active set\"\n")
 	tex = tex.replace("\\activeset ", "\n.I \"Active set\"\n")
 	tex = tex.replace("\\dest.", "\n.IR \"dest\" .\n")
 	tex = tex.replace("\\source.", "\n.IR \"source\" .\n")
-	tex = tex.replace("\\dest{} ", "\n.I \"dest\"\n")
+	tex = tex.replace("\\dest{}", "\n.I \"dest\"\n")
 	tex = tex.replace("\\source{}", "\n.I \"source\"\n")
 	return tex
 
@@ -134,7 +134,6 @@ def argReplacements(tex):
 	sArg = tex.find("\\begin{apiarguments}")
 	eArg = tex.find("\\end{apiarguments}")
 	clean = cleanText(tex[sArg:eArg])
-	
 	clean = macroReplacements(clean)
 	tex = tex[:sArg] + clean + tex[eArg:]
 	while(tex.find("\\apiargument") != -1):
@@ -144,11 +143,11 @@ def argReplacements(tex):
 		ssBrace = feBrace + 1
 		seBrace = tex.find("}", ssBrace)
 		tsBrace = seBrace + 1
-		teBrace = tex.find("}", tsBrace)
+		teBrace = findMatchingBrace(tex, tsBrace)
 		if (tex[fsBrace+1:feBrace] == "None."):
 			tex = tex[:beg] + ".B None." + tex[tsBrace+1:teBrace] + tex[teBrace+1:]
 		else:
-			tex = tex[:beg] + "\n.BR \"" + tex[fsBrace+1:feBrace] \
+			tex = tex[:beg] + "@.BR \"" + tex[fsBrace+1:feBrace] \
 							+ " \" -" + "\n.I " + tex[ssBrace+1:seBrace] \
 							+ "\n- " + tex[tsBrace+1:teBrace] + tex[teBrace+1:]
 	sArg = tex.find("\\begin{apiarguments}")
@@ -157,58 +156,61 @@ def argReplacements(tex):
 	clean = clean.replace("\n ", "\n")
 	while(clean.find("\n\n") != -1):
 		clean = clean.replace("\n\n", "\n")
-	clean = clean.replace(".BR \"IN \"", "\n.BR \"IN \"")
-	clean = clean.replace(".BR \"OUT \"", "\n.BR \"OUT \"")
-	clean = clean.replace(".BR \"INOUT \"", "\n.BR \"INOUT \"")
-	tex = tex[:sArg] + "\n.SH DESCRIPTION\n.SS Arguments\n" + clean + tex[eArg:]
+	tex = tex[:sArg] + "./ sectionStart\n" + "\n.SH DESCRIPTION\n.SS Arguments\n" + \
+			clean + "\n./ sectionEnd\n" + tex[eArg:]
 	tex = tex.replace("\\begin{apiarguments}", "")
 	tex = tex.replace("\\end{apiarguments}", "")
 	return tex
 
 def descrReplacements(tex):
 	sArg = tex.find("\\apidescription{")
-	eArg = tex.find("}\n\n", sArg)
+	eArg = findMatchingBrace(tex, tex.find("{", sArg))
 	clean = cleanText(tex[sArg:eArg])
 	clean = macroReplacements(clean)
-	tex = tex[:sArg] + "\n.SS API Description\n" + clean + tex[eArg+1:]
+	tex = tex[:sArg] + "./ sectionStart\n" + "\n.SS API Description\n" + \
+			clean + "\n./ sectionEnd\n" + tex[eArg+1:]
 	tex = tex.replace("\\apidescription{", "")
 	return tex
 
 def retReplacements(tex):
 	sArg = tex.find("\\apireturnvalues{")
-	eArg = tex.find("}\n\n", sArg)
+	eArg = findMatchingBrace(tex, tex.find("{", sArg))
 	clean = cleanText(tex[sArg:eArg])
 	clean = macroReplacements(clean)
-	tex = tex[:sArg] + "\n.SS Return Values\n" + clean + tex[eArg + 1:]
+	tex = tex[:sArg] + "./ sectionStart\n" + "\n.SS Return Values\n" + \
+			clean + "\n./ sectionEnd\n" + tex[eArg + 1:]
 	tex = tex.replace("\\apireturnvalues{", "")
 	return tex
 
 def notesReplacements(tex):
 	sArg = tex.find("\\apinotes{")
-	eArg = tex.find("}\n\n", sArg)
+	eArg = findMatchingBrace(tex, tex.find("{", sArg))
 	clean = cleanText(tex[sArg:eArg])
+	print(repr(clean))
 	clean = macroReplacements(clean)
-	tex = tex[:sArg] + "\n.SS API Notes\n" + clean + tex[eArg + 1:]
+	tex = tex[:sArg] + "./ sectionStart\n" + "\n.SS API Notes\n" + \
+			clean + "\n./ sectionEnd\n" + tex[eArg + 1:]
 	tex = tex.replace("\\apinotes{", "")
 	return tex
 
 def impnotesReplacements(tex):
 	sArg = tex.find("\\apiimpnotes{")
-	eArg = tex.find("}\n\n", sArg)
+	eArg = findMatchingBrace(tex, tex.find("{", sArg))
 	clean = cleanText(tex[sArg:eArg])
 	clean = macroReplacements(clean)
-	tex = tex[:sArg] + "\n.SS Note to implementors\n" + clean + tex[eArg + 1:]
+	tex = tex[:sArg] + "./ sectionStart\n" + ".SS Note to implementors\n" + \
+				clean + "\n./ sectionEnd\n" + tex[eArg + 1:]
 	tex = tex.replace("\\apiimpnotes{", "")
 	return tex
 
 def sumReplacements(tex, functionName):
 	sArg = tex.find("\\apisummary{")
-	eArg = tex.find("}\n\n", sArg)
+	eArg = findMatchingBrace(tex, tex.find("{", sArg))
 	clean = cleanText(tex[sArg:eArg])
-	clean = clean.replace("\n", "")
+	clean = clean.replace("\n", " ")
 	clean = macroReplacements(clean)
-	tex = tex[:sArg] + functionName + " \- " \
-			+ clean + tex[eArg+1:]
+	tex = tex[:sArg] + "./ sectionStart\n" + ".SH NAME\n" + functionName + " \- " \
+			+ clean + "\n./ sectionEnd\n" + tex[eArg+1:]
 	tex = tex.replace("\\apisummary{", "")
 	return tex
 
@@ -219,7 +221,6 @@ def macroReplacements(clean):
 	clean = oprReplacements(clean)
 	clean = funcReplacements(clean)
 	clean = italReplacements(clean)
-	# clean = clean.replace("\n\n", "\n")
 	clean = clean.replace("\n ", "\n")
 	clean = clean.replace("\n\n.BR ", "\n.BR ")
 	clean = clean.replace("\n\n.B ", "\n.B ")
@@ -227,96 +228,40 @@ def macroReplacements(clean):
 	clean = clean.replace("\n\n.IR ", "\n.IR ")
 	return clean
 
-
-def refRMAReplacements(tex):
-	if (tex.find("\\ref{stdrmatypes}") != -1):
-		while(tex.find("\\ref{stdrmatypes}") != -1):
-			index = tex.find("\\ref{stdrmatypes}")
-			enter = 0
-			last = 0
-			while (enter < index):
-				last = enter
-				enter = tex.find("\n", enter + 1)
-			period = tex.find(".", index)
-			sentence = tex[last + 1: period + 1]
-			tex = tex[:last + 1] + \
-				"* For details on TYPE and TYPENAME, please refer to Table 1 below." +\
-				tex[period + 1:]
-		return (tex, True)
-	else:
-		return (tex, False)
-
-def refP2PReplacements(tex):
-	if (tex.find("\\ref{p2psynctypes}") != -1):
-		while(tex.find("\\ref{p2psynctypes}") != -1):
-			index = tex.find("\\ref{p2psynctypes}")
-			enter = 0
-			last = 0
-			while (enter < index):
-				last = enter
-				enter = tex.find("\n", enter + 1)
-			period = tex.find(".", index)
-			sentence = tex[last + 1: period + 1]
-			tex = tex[:last + 1] + \
-				"* TYPE is one of the point-to-point synchronization types. For details, please refer to Table 5 below." +\
-				tex[period + 1:]
-		return (tex, True)
-	else:
-		return (tex, False)
-
-def refAMOReplacements(tex):
-	if (tex.find("\\ref{extamotypes}") != -1):
-		while(tex.find("\\ref{extamotypes}") != -1):
-			index = tex.find("\\ref{extamotypes}")
-			enter = 0
-			last = 0
-			while (enter < index):
-				last = enter
-				enter = tex.find("\n", enter + 1)
-			period = tex.find(".", index)
-			sentence = tex[last + 1: period + 1]
-			tex = tex[:last + 1] + \
-				"* TYPE is one of the extended AMO types. For details, please refer to Table 3 below." +\
-				tex[period + 1:]
-		return (tex, True)
-	else:
-		return (tex, False)
-
-def refSTDReplacements(tex):
-	if (tex.find("\\ref{stdamotypes}") != -1):
-		while(tex.find("\\ref{stdamotypes}") != -1):
-			index = tex.find("\\ref{stdamotypes}")
-			enter = 0
-			last = 0
-			while (enter < index):
-				last = enter
-				enter = tex.find("\n", enter + 1)
-			period = tex.find(".", index)
-			sentence = tex[last + 1: period + 1]
-			tex = tex[:last + 1] + \
-				"* TYPE is one of the standard AMO types. For details, please refer to Table 2 below." +\
-				tex[period + 1:]
-		return (tex, True)
-	else:
-		return (tex, False)
-
-def refBITReplacements(tex):
-	if (tex.find("\\ref{bitamotypes}") != -1):
-		while(tex.find("\\ref{bitamotypes}") != -1):
-			index = tex.find("\\ref{bitamotypes}")
-			enter = 0
-			last = 0
-			while (enter < index):
-				last = enter
-				enter = tex.find("\n", enter + 1)
-			period = tex.find(".", index)
-			sentence = tex[last + 1: period + 1]
-			tex = tex[:last + 1] + \
-				"* TYPE is one of the bitwise AMO types. For details, please refer to Table 4 below." +\
-				tex[period + 1:]
-		return (tex, True)
-	else:
-		return (tex, False)
+def refTextReplacements(tex):
+	tables = [0, 0, 0, 0, 0]
+	ref1 = "* For details on TYPE and TYPENAME, please refer to Table 1 below."
+	ref2 = "* TYPE is one of the standard AMO types. For details, please refer to Table 2 below."
+	ref3 = "* TYPE is one of the extended AMO types. For details, please refer to Table 3 below."
+	ref4 = "* TYPE is one of the bitwise AMO types. For details, please refer to Table 4 below."
+	ref5 = "* TYPE is one of the point-to-point synchronization types. For details, please refer to Table 5 below."
+	last = 0
+	while(tex.find("./ sectionEnd", last) > 0):
+		fEnd = tex.find("./ sectionEnd", last)
+		sStart = tex.find("./ sectionStart", fEnd)
+		last = sStart
+		if(tex[fEnd + len("./ sectionEnd"):sStart].strip() != ""):
+			if (tex.find("\\ref{stdrmatypes}") != -1):
+				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref1 + "\n" + tex[sStart:]
+				tables[0] = 1
+			elif (tex.find("\\ref{stdamotypes}") != -1):
+				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref2 + "\n" + tex[sStart:]
+				tables[1] = 1
+			elif (tex.find("\\ref{extamotypes}") != -1):
+				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref3 + "\n" + tex[sStart:]
+				tables[2] = 1
+			elif (tex.find("\\ref{bitamotypes}") != -1):
+				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref4 + "\n" + tex[sStart:]
+				tables[3] = 1
+			elif (tex.find("\\ref{p2psynctypes}") != -1):
+				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref5 + "\n" + tex[sStart:]
+				tables[4] = 1
+			else:
+				text = tex[fEnd + len("./ sectionEnd\n"):sStart]
+				clean = cleanText(text)
+				clean = macroReplacements(clean)
+				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + clean + "\n" + tex[sStart:]
+	return (tex, tables)
 
 def refMEMReplacements(tex):
 	if (tex.find("\\ref{subsec:memory_model}") != -1):
@@ -332,24 +277,6 @@ def refMEMReplacements(tex):
 			tex = tex[:last + 1] + \
 				"Please refer to the subsection on the Memory Model for the" + \
 				" definition of the term \"remotely accessible\"." + \
-				tex[period + 1:]
-	return tex
-
-def sizeReplacements(tex):
-	if (tex.find("\\SIZE") != -1):
-		while(tex.find("\\SIZE") != -1):
-			index = tex.find("\\SIZE")
-			enter = 0
-			last = 0
-			while (enter < index):
-				last = enter
-				enter = tex.find("\n", enter + 1)
-			period = tex.find(".", index)
-			clean = tex[last + 1: period + 1]
-			clean = generalReplacements(clean)
-			clean = constReplacements(clean)
-			tex = tex[:last + 1] + \
-				 clean + \
 				tex[period + 1:]
 	return tex
 
@@ -380,7 +307,7 @@ def synCReplacements(tex, keyString):
 						else:
 							wordList[i] = "\n.I " + wordList[i]
 			line = "".join(wordList)
-			coll = coll + "\n" + line
+			coll = coll + "@" + line
 			text = text[e:]
 		coll = coll.replace("$", ";")
 
@@ -391,8 +318,8 @@ def synCReplacements(tex, keyString):
 		else:
 			header = ""
 
-		tex = tex[:sArg] + header + coll  +\
-				 tex[eArg + len("\\end{" + keyString + "}"):]
+		tex = tex[:sArg] + "\n./ sectionStart\n" + header + coll  + \
+				 "\n./ sectionEnd\n" + tex[eArg + len("\\end{" + keyString + "}"):]
 	return tex
 
 
@@ -414,9 +341,8 @@ def synFReplacements(tex):
 						" ".join(wordList[1:]) + "\""
 			text = text[:s] + line + text[e:]
 			last = s
-		text = text.replace("$", "")
-		tex = tex[:sArg + len("\n")] + ".SS Fortran:\n" + "\n.nf\n" + text + "\n.fi\n" +\
-				 tex[eArg + len("\\end{Fsynopsis}"):]
+		tex = tex[:sArg ] + "\n./ sectionStart\n" + ".SS Fortran:\n" + "\n.nf\n" + text + "\n.fi\n" +\
+				 "\n./ sectionEnd\n" + tex[eArg + len("\\end{Fsynopsis}"):]
 	return tex
 
 def codeReplace(tex):
@@ -427,29 +353,38 @@ def codeReplace(tex):
 	return tex
 
 def descTReplacements(tex):
-	sArg = tex.find("\\apidesctable{")
-	eArg = tex.find("}\n\n", sArg)
-	text = tex[sArg:eArg+1]
+	arg = tex.find("\\apidesctable{")
+	fsArg = tex.find("{", arg)
+	feArg = findMatchingBrace(tex, fsArg)
+	ssArg = tex.find("{", feArg)
+	seArg = findMatchingBrace(tex, ssArg)
+	tsArg = tex.find("{", seArg)
+	teArg = findMatchingBrace(tex, tsArg)
+	text = tex[arg:teArg+1]
 	clean = cleanText(text)
-	clean = clean.replace("\n", "")
+	clean = clean.replace("\n", " ")
 	clean = macroReplacements(clean)
-	beg = clean.find("\\apidesctable{")
+	beg = tex.find("\\apidesctable{")
 	fsBrace = clean.find("{")
 	feBrace = clean.find("}", fsBrace)
 	ssBrace = clean.find("{", feBrace)
 	seBrace = clean.find("}", ssBrace)
 	tsBrace = clean.find("{", seBrace)
 	teBrace = clean.find("}", tsBrace)
-	tex = tex[:sArg] + "\n" + clean[fsBrace+1:feBrace] + \
+	tex = tex[:arg] + "\n./ sectionStart\n" + clean[fsBrace+1:feBrace] + \
 			"\n.TP 20\n" + clean[ssBrace+1:seBrace] + "\n" + \
-			clean[tsBrace+1:teBrace] + tex[eArg+1:]
+			clean[tsBrace+1:teBrace] + "\n./ sectionEnd\n" + tex[teArg+1:]
 	return tex
 
 def tablReplacements(tex):
 	while(tex.find("\\apitablerow") != -1):
-		sArg = tex.find("\\apitablerow")
-		eArg = tex.find("}\n", sArg)
-		text = tex[sArg:eArg+1]
+		arg = tex.find("\\apitablerow")
+		fsArg = tex.find("{", arg)
+		feArg = findMatchingBrace(tex, fsArg)
+		ssArg = tex.find("{", feArg)
+		seArg = findMatchingBrace(tex, ssArg)
+		text = tex[arg:seArg+1]
+
 		clean = cleanText(text)
 		clean = clean.replace("\n", " ")
 		clean = macroReplacements(clean)
@@ -459,11 +394,11 @@ def tablReplacements(tex):
 		ssBrace = clean.find("{", feBrace)
 		seBrace = clean.find("}", ssBrace)
 		if (clean[fsBrace+1:feBrace] != ""):
-			tex = tex[:sArg] + "\n.TP 20\n" + clean[fsBrace+1:feBrace] + \
-				"\n" + clean[ssBrace+1:seBrace] + tex[eArg+1:]
+			tex = tex[:arg] + "\n./ sectionStart\n.TP 20\n" + clean[fsBrace+1:feBrace] + \
+				"\n" + clean[ssBrace+1:seBrace] + "\n./ sectionEnd\n" + tex[seArg+1:]
 		else:
-			tex = tex[:sArg] + "\n" + \
-				"\n" + clean[ssBrace+1:seBrace] + tex[eArg+1:]
+			tex = tex[:arg] + "\n" + "\n./ sectionStart" +\
+				"\n" + clean[ssBrace+1:seBrace] + "\n./ sectionEnd\n" + tex[seArg+1:]
 	return tex
 
 def table1():
@@ -714,10 +649,12 @@ def exampleReplacements(tex):
 	eArg = tex.find("\\end{apiexamples}")
 	text = tex[sArg + len("\\begin{apiexamples}"):eArg]
 	clean = cleanText(text)
-	clean = clean.replace("\n", "")
+
+	clean = clean.replace("\n", " ")
 	clean = macroReplacements(clean)
+
 	while(clean.find("\\apicexample") != -1):
-		beg = clean.find("\\apicexample{")
+		beg = clean.find("\\apicexample")
 		fsBrace = clean.find("{", beg)
 		feBrace = clean.find("}", fsBrace)
 		ssBrace = clean.find("{", feBrace)
@@ -730,7 +667,7 @@ def exampleReplacements(tex):
 		clean = clean[:beg] + "\n" + clean[fsBrace+1:feBrace] + "\n\n.nf\n" + ex \
 		+ ".fi\n" + clean[tsBrace+1:teBrace] + clean[teBrace + 1:]
 	while(clean.find("\\apifexample") != -1):
-		beg = clean.find("\\apifexample{")
+		beg = clean.find("\\apifexample")
 		fsBrace = clean.find("{", beg)
 		feBrace = clean.find("}", fsBrace)
 		ssBrace = clean.find("{", feBrace)
@@ -739,23 +676,36 @@ def exampleReplacements(tex):
 		teBrace = clean.find("}", tsBrace)
 		pathS = clean.find("example_code", beg)
 		pathE = clean.find("}", pathS)
-		path = clean[pathS:seBrace].strip()
+		path = clean[ssBrace+1:seBrace].strip()
 		ex = open(path, "r").read()
 		clean = clean[:beg] + "\n" + clean[fsBrace+1:feBrace] + "\n\n.nf\n" + ex \
 		+ ".fi\n" + clean[tsBrace+1:teBrace] + clean[teBrace + 1:]
 	
-	tex = tex[:sArg] + "\n.SS Examples\n" + clean \
-				+ tex[eArg + len("\\end{apiexamples}"):]
+	tex = tex[:sArg] + "./ sectionStart" + "\n.SS Examples\n" + clean \
+				 + tex[eArg + len("\\end{apiexamples}"):]
 	return tex
 
 
 def cleanText(text):
 	text = text.replace("\t", "")
+	
 	while(text.find("  ") != -1):
 		text = text.replace("  ", " ")
-	# text = text.replace("\n\n", "\n")
 	text = text.replace("\n ", "\n")
+	text = text.replace("\n\n", "@")
 	return text
+
+def findMatchingBrace(tex, ind):
+
+	count = 1
+	ptr = ind
+	while(count != 0):
+		ptr = ptr + 1
+		if(tex[ptr] == "{"):
+			count = count + 1
+		if(tex[ptr] == "}"):
+			count = count - 1
+	return ptr
 
 def main():
 	if (len(sys.argv) > 2):
@@ -771,12 +721,13 @@ def main():
 
 	titleHeader = writeTH(functionName)
 	manFile.write(titleHeader)
-	manFile.write(".SH NAME\n")
+
 
 	tex = texFile.read()
 	tex = tex.replace("\\begin{DeprecateBlock}", "")
 	tex = tex.replace("\\end{DeprecateBlock}", "")
-	tex = tex.replace("\\begin{apidefinition}\n", ".SH   SYNOPSIS")
+
+	tex = tex.replace("\\begin{apidefinition}\n", "./ sectionStart\n.SH   SYNOPSIS\n./ sectionEnd")
 	tex = sumReplacements(tex, functionName)
 	tex = mBoxReplacements(tex)
 	tex = argReplacements(tex)
@@ -789,33 +740,34 @@ def main():
 		tex = impnotesReplacements(tex)
 	while(tex.find("\\apidesctable{") != -1):
 		tex = descTReplacements(tex)
-	(tex, rmaTable) = refRMAReplacements(tex)
-	(tex, amoTable) = refAMOReplacements(tex)
-	(tex, stdTable) = refSTDReplacements(tex)
-	(tex, bitTable) = refBITReplacements(tex)
-	(tex, p2pTable) = refP2PReplacements(tex)
 	tex = tablReplacements(tex)
 	tex = refMEMReplacements(tex)
-	tex = sizeReplacements(tex)
 	if (tex.find("\\begin{apiexamples}") != -1):
 		tex = exampleReplacements(tex)
-	if (rmaTable):
+	(tex, tables) = refTextReplacements(tex)
+	if (tables[0]):
 		tex = tex + table1()
-	if (stdTable):
+	if (tables[1]):
 		tex = tex + table2()
-	if (amoTable):
+	if (tables[2]):
 		tex = tex + table3()
-	if (bitTable):
+	if (tables[3]):
 		tex = tex + table4()
-	if (p2pTable):
+	if (tables[4]):
 		tex = tex + table5()
 	tex = tex.replace("\\begin{apidefinition}", "")
 	tex = tex.replace("\\end{apidefinition}", "")
-
-	tex = tex.replace("$", "")
+	text = tex[:tex.find(".SS Examples")]
+	while(text.find("\n\n") != -1):
+		text = text.replace("\n\n", "\n")
+	while(text.find("\n ") != -1):
+		text = text.replace("\n ", "\n")
+	text = text.replace("\\\\", "\n")
+	text = text.replace("$", "")
+	tex = text + tex[tex.find(".SS Examples"):]
+	tex = tex.replace("@", "\n\n")
 	tex = tex.replace("\n ", "\n")
-	tex = tex.replace("\\\\", "\n")
-	manFile.write(tex)
+	manFile.write(tex.replace("\\n", "\\\\" + "n"))
 	manFile.close()
 	texFile.close()
 
