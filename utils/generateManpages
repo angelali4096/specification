@@ -727,7 +727,6 @@ def main():
             parser.print_usage()
             exit(1)
 
-        import pdb; pdb.set_trace()
         #Check that the directory exists
         if args.directory != None:
             if not os.path.isdir(args.directory):
