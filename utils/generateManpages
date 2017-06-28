@@ -5,6 +5,7 @@ import sys
 import os
 import string
 import datetime
+import argparse
 
 boldWordsC = {"void", "int", "const", "size_t", "short", "ptrdiff_t", "long", "TYPE", "shmem_global_exit(int"}
 boldWordsF = {"INTEGER", "CALL", "POINTER", "LOGICAL", "INTEGER*4",
@@ -71,7 +72,7 @@ def varReplacements(tex, keyString):
 		sbrace = tex.find("{", beg)
 		ebrace = tex.find("}", sbrace)
 		innerText = tex[sbrace+1:ebrace]
-		if keyString == "\VARTH"
+                if keyString == "\VARTH":
 			innerText += "th"
 		if (tex[ebrace + 1] != "."):
 			tex = tex[:beg] + "\n.I " + innerText \
@@ -715,70 +716,93 @@ def findMatchingBrace(tex, ind):
 	return ptr
 
 def main():
-	if (len(sys.argv) > 2):
-		print("Invalid number of arguments. Please only input one file at a time.")
-		sys.exit()
+        parser = argparse.ArgumentParser(description='Generate OpenSHMEM manpages')
+        parser.add_argument('-d', '--directory', type=str, required=False,
+                            help='OpenSHMEM specification LaTeX directory path')
+        parser.add_argument('-f', '--filename', type=str, required=False,
+                            help='LaTeX file path for an OpenSHMEM routine')
+        args = parser.parse_args()
 
-	filename = str(sys.argv[1])
-	per = filename.find(".tex")
-	last = 0;
-	while (filename.find("/", last) > 0):
-		last = filename.find("/", last) + 1
-	functionName = filename[last:per]
+        if (args.directory == None) and (args.filename == None):
+            parser.print_usage()
+            exit(1)
 
-	texFile = open(filename, "r")
-	manFile = open("../man/" + functionName + ".3", "w")
-	titleHeader = writeTH(functionName)
-	manFile.write(titleHeader)
+        import pdb; pdb.set_trace()
+        #Check that the directory exists
+        if args.directory != None:
+            if not os.path.isdir(args.directory):
+                print("Error: input directory, " + args.directory + ", does not appear to exist")
+                exit(1)
+
+            #TODO: For each file gathered from TOC:
+            #if not os.path.exists(myfile):
+            #    print "Error: " + myfile + "doesn't exist"
+            #    exit(1)
+
+        if args.filename != None:
+            if not os.path.exists(args.filename):
+                print("Error: input file, " + args.filename + ", does not appear to exist")
+
+	    filename = args.filename
+	    per = filename.find(".tex")
+	    last = 0;
+	    while (filename.find("/", last) > 0):
+	    	last = filename.find("/", last) + 1
+	    functionName = filename[last:per]
+
+	    texFile = open(filename, "r")
+	    manFile = open("../man/" + functionName + ".3", "w")
+	    titleHeader = writeTH(functionName)
+	    manFile.write(titleHeader)
 
 
-	tex = texFile.read()
-	tex = tex.replace("\\begin{DeprecateBlock}", "")
-	tex = tex.replace("\\end{DeprecateBlock}", "")
+	    tex = texFile.read()
+	    tex = tex.replace("\\begin{DeprecateBlock}", "")
+	    tex = tex.replace("\\end{DeprecateBlock}", "")
 
-	tex = tex.replace("\\begin{apidefinition}\n", "./ sectionStart\n.SH   SYNOPSIS\n./ sectionEnd")
-	tex = sumReplacements(tex, functionName)
-	tex = mBoxReplacements(tex)
-	tex = argReplacements(tex)
-	tex = descrReplacements(tex)
-	tex = notesReplacements(tex)
-	tex = retReplacements(tex)
-	tex = boldReplacements(tex)
-	tex = codeReplace(tex)
-	if (tex.find("\\apiimpnotes{") != -1):
-		tex = impnotesReplacements(tex)
-	while(tex.find("\\apidesctable{") != -1):
-		tex = descTReplacements(tex)
-	tex = tablReplacements(tex)
-	tex = refMEMReplacements(tex)
-	if (tex.find("\\begin{apiexamples}") != -1):
-		tex = exampleReplacements(tex)
-	(tex, tables) = refTextReplacements(tex)
-	if (tables[0]):
-		tex = tex + table1()
-	if (tables[1]):
-		tex = tex + table2()
-	if (tables[2]):
-		tex = tex + table3()
-	if (tables[3]):
-		tex = tex + table4()
-	if (tables[4]):
-		tex = tex + table5()
-	tex = tex.replace("\\begin{apidefinition}", "")
-	tex = tex.replace("\\end{apidefinition}", "")
-	text = tex[:tex.find(".SS Examples")]
-	while(text.find("\n\n") != -1):
-		text = text.replace("\n\n", "\n")
-	while(text.find("\n ") != -1):
-		text = text.replace("\n ", "\n")
-	text = text.replace("\\\\", "\n")
-	text = text.replace("$", "")
-	tex = text + tex[tex.find(".SS Examples"):]
-	tex = tex.replace("@", "\n\n")
-	tex = tex.replace("\n ", "\n")
-	manFile.write(tex.replace("\\n", "\\\\" + "n"))
-	manFile.close()
-	texFile.close()
+	    tex = tex.replace("\\begin{apidefinition}\n", "./ sectionStart\n.SH   SYNOPSIS\n./ sectionEnd")
+	    tex = sumReplacements(tex, functionName)
+	    tex = mBoxReplacements(tex)
+	    tex = argReplacements(tex)
+	    tex = descrReplacements(tex)
+	    tex = notesReplacements(tex)
+	    tex = retReplacements(tex)
+	    tex = boldReplacements(tex)
+	    tex = codeReplace(tex)
+	    if (tex.find("\\apiimpnotes{") != -1):
+	    	tex = impnotesReplacements(tex)
+	    while(tex.find("\\apidesctable{") != -1):
+	    	tex = descTReplacements(tex)
+	    tex = tablReplacements(tex)
+	    tex = refMEMReplacements(tex)
+	    if (tex.find("\\begin{apiexamples}") != -1):
+	    	tex = exampleReplacements(tex)
+	    (tex, tables) = refTextReplacements(tex)
+	    if (tables[0]):
+	    	tex = tex + table1()
+	    if (tables[1]):
+	    	tex = tex + table2()
+	    if (tables[2]):
+	    	tex = tex + table3()
+	    if (tables[3]):
+	    	tex = tex + table4()
+	    if (tables[4]):
+	    	tex = tex + table5()
+	    tex = tex.replace("\\begin{apidefinition}", "")
+	    tex = tex.replace("\\end{apidefinition}", "")
+	    text = tex[:tex.find(".SS Examples")]
+	    while(text.find("\n\n") != -1):
+	    	text = text.replace("\n\n", "\n")
+	    while(text.find("\n ") != -1):
+	    	text = text.replace("\n ", "\n")
+	    text = text.replace("\\\\", "\n")
+	    text = text.replace("$", "")
+	    tex = text + tex[tex.find(".SS Examples"):]
+	    tex = tex.replace("@", "\n\n")
+	    tex = tex.replace("\n ", "\n")
+	    manFile.write(tex.replace("\\n", "\\\\" + "n"))
+	    manFile.close()
+	    texFile.close()
 
 if __name__== "__main__":
-  main()
+    main()
