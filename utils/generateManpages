@@ -9,6 +9,9 @@ import datetime
 boldWordsC = {"void", "int", "const", "size_t", "short", "ptrdiff_t", "long", "TYPE", "shmem_global_exit(int"}
 boldWordsF = {"INTEGER", "CALL", "POINTER", "LOGICAL", "INTEGER*4",
 				"INTEGER*8", "REAL*4", "REAL*8", "CHARACTER"}
+routineList = ["shmem_init", "shmem_n_pes", "shmem_my_pes", "shmem_finalize", "shmem_global_exit", "shmem_get_name_info", 
+				"shmem_addr_info"]
+
 
 def writeTH(functionName):
 	titleHeader = ".TH " + functionName.upper() + " 3 " \
@@ -62,18 +65,25 @@ def funcReplacements(tex):
 								+ "\n" + tex[brace+1:]
 	return tex
 
-def varReplacements(tex):
-	while (tex.find("\VAR") != -1):
-		beg = tex.find("\VAR")
+def varReplacements(tex, keyString):
+	while (tex.find(keyString) != -1):
+		beg = tex.find(keyString)
 		sbrace = tex.find("{", beg)
 		ebrace = tex.find("}", sbrace)
+		innerText = tex[sbrace+1:ebrace]
+		if keyString == "\VARTH"
+			innerText += "th"
 		if (tex[ebrace + 1] != "."):
-			tex = tex[:beg] + "\n.I " + tex[sbrace+1:ebrace] \
+			tex = tex[:beg] + "\n.I " + innerText \
 					    	+ "\n" + tex[ebrace+1:]
 		else:
-			tex = tex[:beg] + "\n.IR \"" + tex[sbrace+1:ebrace] \
+			tex = tex[:beg] + "\n.IR \"" + innerText \
 					    	+ "\" .\n" + tex[ebrace+1:]
 	return tex
+
+def variableReplacements(tex):
+	varReplacements(tex, "\VAR")
+	varReplacements(tex, "\VARTH")
 
 def mBoxReplacements(tex):
 	while (tex.find("|\mbox") != -1):
@@ -129,7 +139,6 @@ def constReplacements(tex):
 		eBrace = tex.find("}", sBrace)
 		tex = tex[:beg] + tex[sBrace+1:eBrace] + tex[eBrace+1:]
 	return tex
-
 
 def argReplacements(tex):
 	sArg = tex.find("\\begin{apiarguments}")
@@ -321,7 +330,6 @@ def synCReplacements(tex, keyString):
 		tex = tex[:sArg] + "\n./ sectionStart\n" + header + coll  + \
 				 "\n./ sectionEnd\n" + tex[eArg + len("\\end{" + keyString + "}"):]
 	return tex
-
 
 def synFReplacements(tex):
 	while (tex.find("\\begin{Fsynopsis}") != -1):
@@ -684,7 +692,6 @@ def exampleReplacements(tex):
 	tex = tex[:sArg] + "./ sectionStart" + "\n.SS Examples\n" + clean \
 				 + tex[eArg + len("\\end{apiexamples}"):]
 	return tex
-
 
 def cleanText(text):
 	text = text.replace("\t", "")
