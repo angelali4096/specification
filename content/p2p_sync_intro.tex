@@ -20,30 +20,7 @@ integer types defined in \textit{stdint.h} by \Cstd[99]~\S7.18.1.1 and
 does not provide exact-width integer types with \textit{stdint.h}, an
 \openshmem implemementation is not required to provide support for these types.
 
-\begin{table}[h]
-  \begin{center}
-    \begin{tabular}{|l|l|}
-      \hline
-      \TYPE              & \TYPENAME  \\ \hline
-      short              & short      \\ \hline
-      int                & int        \\ \hline
-      long               & long       \\ \hline
-      long long          & longlong   \\ \hline
-      unsigned short     & ushort     \\ \hline
-      unsigned int       & uint       \\ \hline
-      unsigned long      & ulong      \\ \hline
-      unsigned long long & ulonglong  \\ \hline
-      int32\_t           & int32      \\ \hline
-      int64\_t           & int64      \\ \hline
-      uint32\_t          & uint32     \\ \hline
-      uint64\_t          & uint64     \\ \hline
-      size\_t            & size       \\ \hline
-      ptrdiff\_t         & ptrdiff    \\ \hline
-    \end{tabular}
-    \caption{Point-to-Point Synchronization Types and Names}
-    \label{p2psynctypes}
-  \end{center}
-\end{table}
+\input{content/p2psynctypes}
 
 The point-to-point synchronization interface provides the enumerated type
 \CTYPE{shmem\_cmp\_t}, whose enumerators specify the comparison operators used

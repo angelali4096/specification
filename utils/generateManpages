@@ -7,11 +7,23 @@ import string
 import datetime
 import argparse
 
-boldWordsC = {"void", "int", "const", "size_t", "short", "ptrdiff_t", "long", "TYPE", "shmem_global_exit(int"}
+# boldWordsC and boldWordsF are a set of the key words that will be bolded in the man page
+boldWordsC = {"void", "int", "const", "size_t", "short", "ptrdiff_t", "long", "TYPE", 
+			"shmem_global_exit(int"}
 boldWordsF = {"INTEGER", "CALL", "POINTER", "LOGICAL", "INTEGER*4",
 				"INTEGER*8", "REAL*4", "REAL*8", "CHARACTER"}
-routineList = ["shmem_init", "shmem_n_pes", "shmem_my_pes", "shmem_finalize", "shmem_global_exit", "shmem_get_name_info", 
-				"shmem_addr_info"]
+routineList = ["shmem_init", "shmem_n_pes", "shmem_my_pe", "shmem_finalize", "shmem_global_exit", 
+				"shmem_pe_accessible", "shmem_addr_accessible", "shmem_ptr", "shmem_info_get_version",
+				"shmem_info_get_name", "start_pes", "shmem_malloc", "shmem_calloc", "shpalloc",
+				"shpclmove", "shpdealloc", "shmem_put", "shmem_p", "shmem_iput", "shmem_get",
+				"shmem_g", "shmem_iget", "shmem_put_nbi", "shmem_get_nbi", "shmem_atomic_fetch",
+				"shmem_atomic_set", "shmem_atomic_compare_swap", "shmem_atomic_swap", 
+				"shmem_atomic_fetch_inc", "shmem_atomic_inc", "shmem_atomic_fetch_add",
+				"shmem_atomic_add", "shmem_atomic_fetch_or", "shmem_atomic_or", 
+				"shmem_atomic_fetch_xor", "shmem_atomic_xor", "shmem_barrier_all",
+				"shmem_barrier", "shmem_broadcast", "shmem_collect", "shmem_reductions",
+				"shmem_alltoall", "shmem_alltoalls", "shmem_wait", "shmem_test", "shmem_fence",
+				"shmem_quiet", "shmem_lock", "shmem_cache"]
 
 
 def writeTH(functionName):
@@ -48,6 +60,8 @@ def generalReplacements(tex):
 	tex = tex.replace("\\source.", "\n.IR \"source\" .\n")
 	tex = tex.replace("\\dest{}", "\n.I \"dest\"\n")
 	tex = tex.replace("\\source{}", "\n.I \"source\"\n")
+	tex = tex.replace("\\TYPE{}", "TYPE")
+	tex = tex.replace("\\TYPENAME{}", "TYPENAME")
 	return tex
 
 def funcReplacements(tex):
@@ -72,7 +86,7 @@ def varReplacements(tex, keyString):
 		sbrace = tex.find("{", beg)
 		ebrace = tex.find("}", sbrace)
 		innerText = tex[sbrace+1:ebrace]
-                if keyString == "\VARTH":
+		if keyString == "\VARTH{":
 			innerText += "th"
 		if (tex[ebrace + 1] != "."):
 			tex = tex[:beg] + "\n.I " + innerText \
@@ -83,8 +97,9 @@ def varReplacements(tex, keyString):
 	return tex
 
 def variableReplacements(tex):
-	varReplacements(tex, "\VAR")
-	varReplacements(tex, "\VARTH")
+	tex = varReplacements(tex, "\VAR{")
+	tex = varReplacements(tex, "\VARTH{")
+	return tex
 
 def mBoxReplacements(tex):
 	while (tex.find("|\mbox") != -1):
@@ -158,7 +173,7 @@ def argReplacements(tex):
 		if (tex[fsBrace+1:feBrace] == "None."):
 			tex = tex[:beg] + ".B None." + tex[tsBrace+1:teBrace] + tex[teBrace+1:]
 		else:
-			tex = tex[:beg] + "@.BR \"" + tex[fsBrace+1:feBrace] \
+			tex = tex[:beg] + "__@@__.BR \"" + tex[fsBrace+1:feBrace] \
 							+ " \" -" + "\n.I " + tex[ssBrace+1:seBrace] \
 							+ "\n- " + tex[tsBrace+1:teBrace] + tex[teBrace+1:]
 	sArg = tex.find("\\begin{apiarguments}")
@@ -225,7 +240,7 @@ def sumReplacements(tex, functionName):
 	return tex
 
 def macroReplacements(clean):
-	clean = varReplacements(clean)
+	clean = variableReplacements(clean)
 	clean = generalReplacements(clean)
 	clean = constReplacements(clean)
 	clean = oprReplacements(clean)
@@ -240,37 +255,33 @@ def macroReplacements(clean):
 
 def refTextReplacements(tex):
 	tables = [0, 0, 0, 0, 0]
-	ref1 = "* For details on TYPE and TYPENAME, please refer to Table 1 below."
-	ref2 = "* TYPE is one of the standard AMO types. For details, please refer to Table 2 below."
-	ref3 = "* TYPE is one of the extended AMO types. For details, please refer to Table 3 below."
-	ref4 = "* TYPE is one of the bitwise AMO types. For details, please refer to Table 4 below."
-	ref5 = "* TYPE is one of the point-to-point synchronization types. For details, please refer to Table 5 below."
 	last = 0
 	while(tex.find("./ sectionEnd", last) > 0):
 		fEnd = tex.find("./ sectionEnd", last)
 		sStart = tex.find("./ sectionStart", fEnd)
 		last = sStart
 		if(tex[fEnd + len("./ sectionEnd"):sStart].strip() != ""):
+			clean = tex[fEnd + len("./ sectionEnd"):sStart].strip()
+			clean = cleanText(clean)
+			clean = macroReplacements(clean)
 			if (tex.find("\\ref{stdrmatypes}") != -1):
-				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref1 + "\n" + tex[sStart:]
+				clean = clean.replace("\\ref{stdrmatypes}", "1")
 				tables[0] = 1
-			elif (tex.find("\\ref{stdamotypes}") != -1):
-				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref2 + "\n" + tex[sStart:]
+			if (tex.find("\\ref{stdamotypes}") != -1):
+				clean = clean.replace("\\ref{stdamotypes}", "2")
 				tables[1] = 1
-			elif (tex.find("\\ref{extamotypes}") != -1):
-				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref3 + "\n" + tex[sStart:]
+			if (tex.find("\\ref{extamotypes}") != -1):
+				clean = clean.replace("\\ref{extamotypes}", "3")
 				tables[2] = 1
-			elif (tex.find("\\ref{bitamotypes}") != -1):
-				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref4 + "\n" + tex[sStart:]
+			if (tex.find("\\ref{bitamotypes}") != -1):
+				clean = clean.replace("\\ref{bitamotypes}", "4")
 				tables[3] = 1
-			elif (tex.find("\\ref{p2psynctypes}") != -1):
-				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + ref5 + "\n" + tex[sStart:]
+			if (tex.find("\\ref{p2psynctypes}") != -1):
+				clean = clean.replace("\\ref{p2psynctypes}", "5")
 				tables[4] = 1
-			else:
-				text = tex[fEnd + len("./ sectionEnd\n"):sStart]
-				clean = cleanText(text)
-				clean = macroReplacements(clean)
-				tex = tex[:fEnd + len("./ sectionEnd\n")] + "@" + clean + "\n" + tex[sStart:]
+
+			clean = clean.replace("~", " ")
+			tex = tex[:fEnd + len("./ sectionEnd\n")] + "__@@__" + clean + "\n" + tex[sStart:]
 	return (tex, tables)
 
 def refMEMReplacements(tex):
@@ -317,7 +328,7 @@ def synCReplacements(tex, keyString):
 						else:
 							wordList[i] = "\n.I " + wordList[i]
 			line = "".join(wordList)
-			coll = coll + "@" + line
+			coll = coll + "__@@__" + line
 			text = text[e:]
 		coll = coll.replace("$", ";")
 
@@ -410,248 +421,46 @@ def tablReplacements(tex):
 				"\n" + clean[ssBrace+1:seBrace] + "\n./ sectionEnd\n" + tex[seArg+1:]
 	return tex
 
-def table1():
-	return ".SS Table 1: \n" + \
-	".TP 20\n" + \
-	".B TYPE\n" + \
-	".B TYPENAME\n" + \
-	".TP\n" + \
-	"float\n" + \
-	"float\n" + \
-	".TP\n" + \
-	"double\n" + \
-	"double\n" + \
-	".TP\n" + \
-	"long double\n" + \
-	"longdouble\n" + \
-	".TP\n" + \
-	"char\n" + \
-	"char\n" + \
-	".TP\n" + \
-	"signed char\n" + \
-	"schar\n" + \
-	".TP\n" + \
-	"short\n" + \
-	"short\n" + \
-	".TP\n" + \
-	"int\n" + \
-	"int\n" + \
-	".TP\n" + \
-	"long\n" + \
-	"long\n" + \
-	".TP\n" + \
-	"long long\n" + \
-	"longlong\n" + \
-	".TP\n" + \
-	"unsigned char\n" + \
-	"uchar\n" + \
-	".TP\n" + \
-	"unsigned short\n" + \
-	"ushort\n" + \
-	".TP\n" + \
-	"unsigned int\n" + \
-	"uint\n" + \
-	".TP\n" + \
-	"unsigned long\n" + \
-	"ulong\n" + \
-	".TP\n" + \
-	"unsigned long long\n" + \
-	"ulonglong\n" + \
-	".TP\n" + \
-	"int8_t\n" + \
-	"int8\n" + \
-	".TP\n" + \
-	"int16_t\n" + \
-	"int16\n" + \
-	".TP\n" + \
-	"int32_t\n" + \
-	"int32\n" + \
-	".TP\n" + \
-	"int64_t\n" + \
-	"int64\n" + \
-	".TP\n" + \
-	"uint8_t\n" + \
-	"uint8\n" + \
-	".TP\n" + \
-	"uint16_t\n" + \
-	"uint16\n" + \
-	".TP\n" + \
-	"uint32_t\n" + \
-	"uint32\n" + \
-	".TP\n" + \
-	"uint64_t\n" + \
-	"uint64\n" + \
-	".TP\n" + \
-	"size_t\n" + \
-	"size\n" + \
-	".TP\n" + \
-	"ptrdiff_t\n" + \
-	"ptrdiff\n" 
+def parseTable(tableTex):
+	startIdx = tableTex.find("\\hline")
+	endIdx = tableTex.find("\\end{tabular}")
+	table = cleanText(tableTex[startIdx + len("\\hline"):endIdx])
+	# print(table)
+	text = ""
+	count = 0
+	while(table.find("\\hline") >= 0):
+		line = table[:table.find("\\hline")]
+		firstCol = line[:line.find("&")]
+		secondCol = line[line.find("&")+1:line.find("\\\\")].strip()
+		if (count == 0):
+			text += ".TP 20\n" + ".B " + firstCol + "\n.B " + secondCol + "\n"
+		else:
+			text += ".TP\n" + firstCol + "\n" + secondCol + "\n"
+		table = table[table.find("\\hline") + len("\\hline"):]
+		count += 1
+	return text
 
-def table2():
-	return ".SS Table 2: \n" + \
-	".TP 20\n" + \
-	".B TYPE\n" + \
-	".B TYPENAME\n" + \
-	".TP\n" + \
-	"int\n" + \
-	"int\n" + \
-	".TP\n" + \
-	"long\n" + \
-	"long\n" + \
-	".TP\n" + \
-	"long long\n" + \
-	"longlong\n" + \
-	".TP\n" + \
-	"unsigned int\n" + \
-	"uint\n" + \
-	".TP\n" + \
-	"unsigned long\n" + \
-	"ulong\n" + \
-	".TP\n" + \
-	"unsigned long long\n" + \
-	"ulonglong\n" + \
-	".TP\n" + \
-	"int32_t\n" + \
-	"int32\n" + \
-	".TP\n" + \
-	"int64_t\n" + \
-	"int64\n" + \
-	".TP\n" + \
-	"uint32_t\n" + \
-	"uint32\n" + \
-	".TP\n" + \
-	"uint64_t\n" + \
-	"uint64\n" + \
-	".TP\n" + \
-	"size_t\n" + \
-	"size\n" + \
-	".TP\n" + \
-	"ptrdiff_t\n" + \
-	"ptrdiff\n" 
 
-def table3():
-	return ".SS Table 3: \n" + \
-	".TP 20\n" + \
-	".B TYPE\n" + \
-	".B TYPENAME\n" + \
-	".TP\n" + \
-	"float\n" + \
-	"float\n" + \
-	".TP\n" + \
-	"double\n" + \
-	"double\n" + \
-	".TP\n" + \
-	"int\n" + \
-	"int\n" + \
-	".TP\n" + \
-	"long\n" + \
-	"long\n" + \
-	".TP\n" + \
-	"long long\n" + \
-	"longlong\n" + \
-	".TP\n" + \
-	"unsigned int\n" + \
-	"uint\n" + \
-	".TP\n" + \
-	"unsigned long\n" + \
-	"ulong\n" + \
-	".TP\n" + \
-	"unsigned long long\n" + \
-	"ulonglong\n" + \
-	".TP\n" + \
-	"int32_t\n" + \
-	"int32\n" + \
-	".TP\n" + \
-	"int64_t\n" + \
-	"int64\n" + \
-	".TP\n" + \
-	"uint32_t\n" + \
-	"uint32\n" + \
-	".TP\n" + \
-	"uint64_t\n" + \
-	"uint64\n" + \
-	".TP\n" + \
-	"size_t\n" + \
-	"size\n" + \
-	".TP\n" + \
-	"ptrdiff_t\n" + \
-	"ptrdiff\n" 
+def table(tableID, directory):
+	if tableID == 1:
+		tableTex = open(directory + "stdrmatypes.tex", "r").read()
+	elif tableID == 2: 
+		tableTex = open(directory + "stdamotypes.tex", "r").read()
+	elif tableID == 3:
+		tableTex = open(directory + "extamotypes.tex", "r").read()
+	elif tableID == 4:
+		tableTex = open(directory + "bitamotypes.tex", "r").read()
+	else:
+		tableTex = open(directory + "p2psynctypes.tex", "r").read()
+	captionIdx = tableTex.find("\\caption{")
+	startBrace = captionIdx + len("\\caption{")
+	endBrace = findMatchingBrace(tableTex, startBrace)
 
-def table4():
-	return ".SS Table 4: \n" + \
-	".TP 20\n" + \
-	".B TYPE\n" + \
-	".B TYPENAME\n" + \
-	".TP\n" + \
-	"unsigned int\n" + \
-	"uint\n" + \
-	".TP\n" + \
-	"unsigned long\n" + \
-	"ulong\n" + \
-	".TP\n" + \
-	"unsigned long long\n" + \
-	"ulonglong\n" + \
-	".TP\n" + \
-	"int32_t\n" + \
-	"int32\n" + \
-	".TP\n" + \
-	"int64_t\n" + \
-	"int64\n" + \
-	".TP\n" + \
-	"uint32_t\n" + \
-	"uint32\n" + \
-	".TP\n" + \
-	"uint64_t\n" + \
-	"uint64\n"
+	caption = generalReplacements(tableTex[startBrace:endBrace])
+	text = ".SS Table " + str(tableID) + ":\n" + caption + "\n" + \
+			parseTable(tableTex)
+	return text
 
-def table5():
-	return ".SS Table 5: \n" + \
-		".TP 20\n" + \
-		".B TYPE\n" + \
-		".B TYPENAME\n" + \
-		".TP\n" + \
-		"short\n" + \
-		"short\n" + \
-		".TP\n" + \
-		"int\n" + \
-		"int\n" + \
-		".TP\n" + \
-		"long\n" + \
-		"long\n" + \
-		".TP\n" + \
-		"long long\n" + \
-		"longlong\n" + \
-		".TP\n" + \
-		"unsigned int\n" + \
-		"uint\n" + \
-		".TP\n" + \
-		"unsigned short\n" + \
-		"ushort\n" + \
-		".TP\n" + \
-		"unsigned long\n" + \
-		"ulong\n" + \
-		".TP\n" + \
-		"unsigned long long\n" + \
-		"ulonglong\n" + \
-		".TP\n" + \
-		"int32_t\n" + \
-		"int32\n" + \
-		".TP\n" + \
-		"int64_t\n" + \
-		"int64\n" + \
-		".TP\n" + \
-		"uint32_t\n" + \
-		"uint32\n" + \
-		".TP\n" + \
-		"uint64_t\n" + \
-		"uint64\n" + \
-		".TP\n" + \
-		"size_t\n" + \
-		"size\n" + \
-		".TP\n" + \
-		"ptrdiff_t\n" + \
-		"ptrdiff\n"
 
 def exampleReplacements(tex):
 	sArg = tex.find("\\begin{apiexamples}")
@@ -700,11 +509,10 @@ def cleanText(text):
 	while(text.find("  ") != -1):
 		text = text.replace("  ", " ")
 	text = text.replace("\n ", "\n")
-	text = text.replace("\n\n", "@")
+	text = text.replace("\n\n", "__@@__")
 	return text
 
 def findMatchingBrace(tex, ind):
-
 	count = 1
 	ptr = ind
 	while(count != 0):
@@ -715,93 +523,109 @@ def findMatchingBrace(tex, ind):
 			count = count - 1
 	return ptr
 
+def convertFile(functionName, directory):
+		filename = directory + functionName + ".tex"
+
+		texFile = open(filename, "r")
+		if not os.path.exists("../man"):
+			os.makedirs("../man")
+		manFile = open("../man/" + functionName + ".3", "w")
+		titleHeader = writeTH(functionName)
+		manFile.write(titleHeader)
+
+		tex = texFile.read()
+		tex = tex.replace("\\begin{DeprecateBlock}", "")
+		tex = tex.replace("\\end{DeprecateBlock}", "")
+		tex = tex.replace("\\begin{apidefinition}\n", "./ sectionStart\n.SH   SYNOPSIS\n./ sectionEnd")
+		tex = sumReplacements(tex, functionName)
+		tex = mBoxReplacements(tex)
+		tex = argReplacements(tex)
+		tex = descrReplacements(tex)
+		tex = notesReplacements(tex)
+		tex = retReplacements(tex)
+		tex = boldReplacements(tex)
+		tex = codeReplace(tex)
+		if (tex.find("\\apiimpnotes{") != -1):
+			tex = impnotesReplacements(tex)
+		while(tex.find("\\apidesctable{") != -1):
+			tex = descTReplacements(tex)
+		tex = tablReplacements(tex)
+		tex = refMEMReplacements(tex)
+		if (tex.find("\\begin{apiexamples}") != -1):
+			tex = exampleReplacements(tex)
+		(tex, tables) = refTextReplacements(tex)
+		if (tables[0]):
+			tex = tex + table(1, directory)
+		if (tables[1]):
+			tex = tex + table(2, directory)
+		if (tables[2]):
+			tex = tex + table(3, directory)
+		if (tables[3]):
+			tex = tex + table(4, directory)
+		if (tables[4]):
+			tex = tex + table(5, directory)
+		tex = tex.replace("\\begin{apidefinition}", "")
+		tex = tex.replace("\\end{apidefinition}", "")
+		text = tex[:tex.find(".SS Examples")]
+		while(text.find("\n\n") != -1):
+			text = text.replace("\n\n", "\n")
+		while(text.find("\n ") != -1):
+			text = text.replace("\n ", "\n")
+		text = text.replace("\\\\", "\n")
+		text = text.replace("$", "")
+		tex = text + tex[tex.find(".SS Examples"):]
+		tex = tex.replace("__@@__", "\n\n")
+		tex = tex.replace("\n ", "\n")
+		manFile.write(tex.replace("\\n", "\\\\" + "n"))
+		print("Finished converting " + functionName + ".tex")
+		manFile.close()
+		texFile.close()
+
 def main():
-        parser = argparse.ArgumentParser(description='Generate OpenSHMEM manpages')
-        parser.add_argument('-d', '--directory', type=str, required=False,
+		parser = argparse.ArgumentParser(description='Generate OpenSHMEM manpages')
+		parser.add_argument('-d', '--directory', type=str, required=False,
                             help='OpenSHMEM specification LaTeX directory path')
-        parser.add_argument('-f', '--filename', type=str, required=False,
+		parser.add_argument('-f', '--filename', type=str, required=False,
                             help='LaTeX file path for an OpenSHMEM routine')
-        args = parser.parse_args()
+		args = parser.parse_args()
 
-        if (args.directory == None) and (args.filename == None):
-            parser.print_usage()
-            exit(1)
-
+		if (args.directory == None) and (args.filename == None):
+			parser.print_usage()
+			exit(1)
         #Check that the directory exists
-        if args.directory != None:
-            if not os.path.isdir(args.directory):
-                print("Error: input directory, " + args.directory + ", does not appear to exist")
-                exit(1)
+		# print(args.directory)
+		if args.directory != None:
+			if args.directory[-1] != "/":
+				args.directory += "/"
+			if not os.path.realpath(args.directory):
+				print("Error: input directory, " + args.directory + ", does not appear to exist")
+				exit(1)
+			else:
+				print("Dir found")
+				for routine in routineList:
+					if routine + ".tex" not in os.listdir(args.directory):
+						print("Error: " + routine + ".tex is not in the given directory")
+						exit(1)
+					else:
+						convertFile(routine, args.directory)
+		else:
+			if not os.path.isfile(args.filename):
+				print("Error: input file, " + args.filename + ", does not appear to exist.")
+				exit(1)
+			else:
+				per = args.filename.find(".tex")
+				last = 0;
+				# print(args.filename.find("/", last))
+				while (args.filename.find("/", last) >= 0):
+					last = args.filename.find("/", last) + 1
+					# print(last)
+				functionName = args.filename[last:per]
+				# print(functionName)
+				if functionName not in routineList:
+					print("WARNING: This function is not in the list of parsable routines. May result in undefined behavior.")
+				convertFile(functionName, args.filename[:last])
 
-            #TODO: For each file gathered from TOC:
-            #if not os.path.exists(myfile):
-            #    print "Error: " + myfile + "doesn't exist"
-            #    exit(1)
 
-        if args.filename != None:
-            if not os.path.exists(args.filename):
-                print("Error: input file, " + args.filename + ", does not appear to exist")
-
-	    filename = args.filename
-	    per = filename.find(".tex")
-	    last = 0;
-	    while (filename.find("/", last) > 0):
-	    	last = filename.find("/", last) + 1
-	    functionName = filename[last:per]
-
-	    texFile = open(filename, "r")
-	    manFile = open("../man/" + functionName + ".3", "w")
-	    titleHeader = writeTH(functionName)
-	    manFile.write(titleHeader)
-
-
-	    tex = texFile.read()
-	    tex = tex.replace("\\begin{DeprecateBlock}", "")
-	    tex = tex.replace("\\end{DeprecateBlock}", "")
-
-	    tex = tex.replace("\\begin{apidefinition}\n", "./ sectionStart\n.SH   SYNOPSIS\n./ sectionEnd")
-	    tex = sumReplacements(tex, functionName)
-	    tex = mBoxReplacements(tex)
-	    tex = argReplacements(tex)
-	    tex = descrReplacements(tex)
-	    tex = notesReplacements(tex)
-	    tex = retReplacements(tex)
-	    tex = boldReplacements(tex)
-	    tex = codeReplace(tex)
-	    if (tex.find("\\apiimpnotes{") != -1):
-	    	tex = impnotesReplacements(tex)
-	    while(tex.find("\\apidesctable{") != -1):
-	    	tex = descTReplacements(tex)
-	    tex = tablReplacements(tex)
-	    tex = refMEMReplacements(tex)
-	    if (tex.find("\\begin{apiexamples}") != -1):
-	    	tex = exampleReplacements(tex)
-	    (tex, tables) = refTextReplacements(tex)
-	    if (tables[0]):
-	    	tex = tex + table1()
-	    if (tables[1]):
-	    	tex = tex + table2()
-	    if (tables[2]):
-	    	tex = tex + table3()
-	    if (tables[3]):
-	    	tex = tex + table4()
-	    if (tables[4]):
-	    	tex = tex + table5()
-	    tex = tex.replace("\\begin{apidefinition}", "")
-	    tex = tex.replace("\\end{apidefinition}", "")
-	    text = tex[:tex.find(".SS Examples")]
-	    while(text.find("\n\n") != -1):
-	    	text = text.replace("\n\n", "\n")
-	    while(text.find("\n ") != -1):
-	    	text = text.replace("\n ", "\n")
-	    text = text.replace("\\\\", "\n")
-	    text = text.replace("$", "")
-	    tex = text + tex[tex.find(".SS Examples"):]
-	    tex = tex.replace("@", "\n\n")
-	    tex = tex.replace("\n ", "\n")
-	    manFile.write(tex.replace("\\n", "\\\\" + "n"))
-	    manFile.close()
-	    texFile.close()
 
 if __name__== "__main__":
     main()
