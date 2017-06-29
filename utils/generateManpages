@@ -12,19 +12,6 @@ boldWordsC = {"void", "int", "const", "size_t", "short", "ptrdiff_t", "long", "T
 			"shmem_global_exit(int"}
 boldWordsF = {"INTEGER", "CALL", "POINTER", "LOGICAL", "INTEGER*4",
 				"INTEGER*8", "REAL*4", "REAL*8", "CHARACTER"}
-routineList = ["shmem_init", "shmem_n_pes", "shmem_my_pe", "shmem_finalize", "shmem_global_exit", 
-				"shmem_pe_accessible", "shmem_addr_accessible", "shmem_ptr", "shmem_info_get_version",
-				"shmem_info_get_name", "start_pes", "shmem_malloc", "shmem_calloc", "shpalloc",
-				"shpclmove", "shpdealloc", "shmem_put", "shmem_p", "shmem_iput", "shmem_get",
-				"shmem_g", "shmem_iget", "shmem_put_nbi", "shmem_get_nbi", "shmem_atomic_fetch",
-				"shmem_atomic_set", "shmem_atomic_compare_swap", "shmem_atomic_swap", 
-				"shmem_atomic_fetch_inc", "shmem_atomic_inc", "shmem_atomic_fetch_add",
-				"shmem_atomic_add", "shmem_atomic_fetch_or", "shmem_atomic_or", 
-				"shmem_atomic_fetch_xor", "shmem_atomic_xor", "shmem_barrier_all",
-				"shmem_barrier", "shmem_broadcast", "shmem_collect", "shmem_reductions",
-				"shmem_alltoall", "shmem_alltoalls", "shmem_wait", "shmem_test", "shmem_fence",
-				"shmem_quiet", "shmem_lock", "shmem_cache"]
-
 
 def writeTH(functionName):
 	titleHeader = ".TH " + functionName.upper() + " 3 " \
@@ -524,108 +511,121 @@ def findMatchingBrace(tex, ind):
 	return ptr
 
 def convertFile(functionName, directory, gen_dir):
-		filename = directory + '/' + functionName + ".tex"
-		texFile = open(filename, "r")
-		if not os.path.exists(gen_dir):
-		    os.makedirs(gen_dir)
-		manFile = open(gen_dir + '/' + functionName + ".3", "w")
-		titleHeader = writeTH(functionName)
-		manFile.write(titleHeader)
+	filename = directory + '/' + functionName + ".tex"
+	texFile = open(filename, "r")
+	if not os.path.exists(gen_dir):
+	    os.makedirs(gen_dir)
+	manFile = open(gen_dir + '/' + functionName + ".3", "w")
+	titleHeader = writeTH(functionName)
+	manFile.write(titleHeader)
 
-		tex = texFile.read()
-		tex = tex.replace("\\begin{DeprecateBlock}", "")
-		tex = tex.replace("\\end{DeprecateBlock}", "")
-		tex = tex.replace("\\begin{apidefinition}\n", "./ sectionStart\n.SH   SYNOPSIS\n./ sectionEnd")
-		tex = sumReplacements(tex, functionName)
-		tex = mBoxReplacements(tex)
-		tex = argReplacements(tex)
-		tex = descrReplacements(tex)
-		tex = notesReplacements(tex)
-		tex = retReplacements(tex)
-		tex = boldReplacements(tex)
-		tex = codeReplace(tex)
-		if (tex.find("\\apiimpnotes{") != -1):
-			tex = impnotesReplacements(tex)
-		while(tex.find("\\apidesctable{") != -1):
-			tex = descTReplacements(tex)
-		tex = tablReplacements(tex)
-		tex = refMEMReplacements(tex)
-		if (tex.find("\\begin{apiexamples}") != -1):
-			tex = exampleReplacements(tex, directory)
-		(tex, tables) = refTextReplacements(tex)
-		if (tables[0]):
-			tex = tex + table(1, directory)
-		if (tables[1]):
-			tex = tex + table(2, directory)
-		if (tables[2]):
-			tex = tex + table(3, directory)
-		if (tables[3]):
-			tex = tex + table(4, directory)
-		if (tables[4]):
-			tex = tex + table(5, directory)
-		tex = tex.replace("\\begin{apidefinition}", "")
-		tex = tex.replace("\\end{apidefinition}", "")
-		text = tex[:tex.find(".SS Examples")]
-		while(text.find("\n\n") != -1):
-			text = text.replace("\n\n", "\n")
-		while(text.find("\n ") != -1):
-			text = text.replace("\n ", "\n")
-		text = text.replace("\\\\", "\n")
-		text = text.replace("$", "")
-		tex = text + tex[tex.find(".SS Examples"):]
-		tex = tex.replace("__@@__", "\n\n")
-		tex = tex.replace("\n ", "\n")
-		manFile.write(tex.replace("\\n", "\\\\" + "n"))
-		print("Finished converting " + functionName + ".tex")
-		manFile.close()
-		texFile.close()
+	tex = texFile.read()
+	tex = tex.replace("\\begin{DeprecateBlock}", "")
+	tex = tex.replace("\\end{DeprecateBlock}", "")
+	tex = tex.replace("\\begin{apidefinition}\n", "./ sectionStart\n.SH   SYNOPSIS\n./ sectionEnd")
+	tex = sumReplacements(tex, functionName)
+	tex = mBoxReplacements(tex)
+	tex = argReplacements(tex)
+	tex = descrReplacements(tex)
+	tex = notesReplacements(tex)
+	tex = retReplacements(tex)
+	tex = boldReplacements(tex)
+	tex = codeReplace(tex)
+	if (tex.find("\\apiimpnotes{") != -1):
+		tex = impnotesReplacements(tex)
+	while(tex.find("\\apidesctable{") != -1):
+		tex = descTReplacements(tex)
+	tex = tablReplacements(tex)
+	tex = refMEMReplacements(tex)
+	if (tex.find("\\begin{apiexamples}") != -1):
+		tex = exampleReplacements(tex, directory)
+	(tex, tables) = refTextReplacements(tex)
+	if (tables[0]):
+		tex = tex + table(1, directory)
+	if (tables[1]):
+		tex = tex + table(2, directory)
+	if (tables[2]):
+		tex = tex + table(3, directory)
+	if (tables[3]):
+		tex = tex + table(4, directory)
+	if (tables[4]):
+		tex = tex + table(5, directory)
+	tex = tex.replace("\\begin{apidefinition}", "")
+	tex = tex.replace("\\end{apidefinition}", "")
+	text = tex[:tex.find(".SS Examples")]
+	while(text.find("\n\n") != -1):
+		text = text.replace("\n\n", "\n")
+	while(text.find("\n ") != -1):
+		text = text.replace("\n ", "\n")
+	text = text.replace("\\\\", "\n")
+	text = text.replace("$", "")
+	tex = text + tex[tex.find(".SS Examples"):]
+	tex = tex.replace("__@@__", "\n\n")
+	tex = tex.replace("\n ", "\n")
+	manFile.write(tex.replace("\\n", "\\\\" + "n"))
+	print("Finished converting " + functionName + ".tex")
+	manFile.close()
+	texFile.close()
 
 def generateRoutineList(TOC):
-	return 
+	count = 0;
+	routineList = []
+	while(TOC.find("\\subsubsection{\\textbf", count) > 0):
+		currIdx = TOC.find("\\subsubsection{\\textbf", count)
+		startBrace = TOC.find("\\textbf", currIdx) + len("\\textbf")
+		endBrace = TOC.find("}", startBrace)
+		func = TOC[startBrace+1:endBrace]
+		if (func.find(",") != -1):
+			func = func[:func.find(",")]
+		name = func.lower().replace("\\", "")
+		routineList.append(name)
+		count = currIdx + len("\\subsubsection{\\textbf")
+	return routineList
 
 def main():
-		parser = argparse.ArgumentParser(description='Generate OpenSHMEM manpages')
-		parser.add_argument('-d', '--directory', type=str, required=False,
-                            help='OpenSHMEM specification LaTeX directory path')
-		parser.add_argument('-o', '--output-directory', type=str, required=False, default="./man",
-                            help='Output directory for generated manpages')
-		parser.add_argument('-f', '--filename', type=str, required=False,
-                            help='LaTeX file path for an OpenSHMEM routine')
-		args = parser.parse_args()
+	parser = argparse.ArgumentParser(description='Generate OpenSHMEM manpages')
+	parser.add_argument('-d', '--directory', type=str, required=False,
+                        help='OpenSHMEM specification LaTeX directory path')
+	parser.add_argument('-o', '--output-directory', type=str, required=False, default="./man",
+                        help='Output directory for generated manpages')
+	parser.add_argument('-f', '--filename', type=str, required=False,
+                        help='LaTeX file path for an OpenSHMEM routine')
+	args = parser.parse_args()
 
-		if (args.directory == None) and (args.filename == None):
-			parser.print_usage()
+	if (args.directory == None) and (args.filename == None):
+		parser.print_usage()
+		exit(1)
+
+	if args.directory != None:
+		if not os.path.realpath(args.directory):
+			print("Error: input directory, " + args.directory + ", does not appear to exist")
 			exit(1)
-
-    #Check that the directory exists
-		if args.directory != None:
-			if not os.path.realpath(args.directory):
-				print("Error: input directory, " + args.directory + ", does not appear to exist")
-				exit(1)
-			else:
-				print("Dir found")
-				for routine in routineList:
-					if routine + ".tex" not in os.listdir(args.directory):
-						print("Error: " + routine + ".tex is not in the given directory")
-						exit(1)
-					else:
-						convertFile(routine, args.directory, args.output_directory)
 		else:
-			if not os.path.isfile(args.filename):
-				print("Error: input file, " + args.filename + ", does not appear to exist.")
-				exit(1)
-			else:
-				per = args.filename.find(".tex")
-				last = 0;
-				# print(args.filename.find("/", last))
-				while (args.filename.find("/", last) >= 0):
-					last = args.filename.find("/", last) + 1
-					# print(last)
-				functionName = args.filename[last:per]
-				# print(functionName)
-				if functionName not in routineList:
-					print("WARNING: This function is not in the list of parsable routines. May result in undefined behavior.")
-				convertFile(functionName, args.filename[:last], args.output_directory)
+			print("Dir found")
+			TOC = open(args.directory + "../main_spec.tex").read()
+			routineList = generateRoutineList(TOC)
+			for routine in routineList:
+				if routine + ".tex" not in os.listdir(args.directory):
+					print("Error: " + routine + ".tex is not in the given directory")
+					exit(1)
+				else:
+					convertFile(routine, args.directory, args.output_directory)
+	else:
+		if not os.path.isfile(args.filename):
+			print("Error: input file, " + args.filename + ", does not appear to exist.")
+			exit(1)
+		else:
+			per = args.filename.find(".tex")
+			last = 0;
+			# print(args.filename.find("/", last))
+			while (args.filename.find("/", last) >= 0):
+				last = args.filename.find("/", last) + 1
+				# print(last)
+			functionName = args.filename[last:per]
+			# print(functionName)
+			if functionName not in routineList:
+				print("WARNING: This function is not in the list of parsable routines. May result in undefined behavior.")
+			convertFile(functionName, args.filename[:last], args.output_directory)
 
 if __name__== "__main__":
     main()
