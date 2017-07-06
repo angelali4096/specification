@@ -623,8 +623,8 @@ def main():
 				# print(last)
 			functionName = args.filename[last:per]
 			# print(functionName)
-			if functionName not in routineList:
-				print("WARNING: This function is not in the list of parsable routines. May result in undefined behavior.")
+			# if functionName not in routineList:
+			# 	print("WARNING: This function is not in the list of parsable routines. May result in undefined behavior.")
 			convertFile(functionName, args.filename[:last], args.output_directory)
 
 if __name__== "__main__":
