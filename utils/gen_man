@@ -34,7 +34,7 @@ def funcReplacements(tex):
 	# period at the beginning of a line denotes a comment and the 
 	# entire line will not appear.
 	# (.BR <argument> .)
-
+	#
 	# .B at the start of a line will bold all text until the next "\n"
 	# .BR will alternate between bold and regular font. For example:
 	# 
@@ -71,7 +71,7 @@ def varReplacements(tex, keyString):
 	# (.IR <argument> .)
 	# -- Special consideration to any argument of "VARTH", which will 
 	# require appending "th" to the argument string.
-
+	#
 	# .I at the start of a line will underline/italicize all text until
 	# the next "\n"
 	# .IR will alternate between bold and regular font. For example:
@@ -464,7 +464,7 @@ def descTReplacements(tex):
 	# If there there is no <number>, the script will default to 1, or the
 	# lastest definition of <number> in the current table
 	# NOTE: Typically manpages ignores "\n" within the text and displays
-	# the test as if there is no "\n". Under the ".TP" header, the flag
+	# the text as if there is no "\n". Under the ".TP" header, the flag
 	# for when the second column begins is the next "\n" 
 	# 
 	# The strings "./ sectionStart" and "./ sectionEnd" are appending at the
@@ -515,7 +515,7 @@ def tablerowReplacements(tex):
 	# If there there is no <number>, the script will default to 1, or the
 	# lastest definition of <number> in the current table
 	# NOTE: Typically manpages ignores "\n" within the text and displays
-	# the test as if there is no "\n". Under the ".TP" header, the flag
+	# the text as if there is no "\n". Under the ".TP" header, the flag
 	# for when the second column begins is the next "\n" 
 	#
 	# In the special case that there is no text in the first column (a 
@@ -557,6 +557,15 @@ def tablerowReplacements(tex):
 ##########################################################################
 
 def refTextReplacements(tex):
+	# Searches through the tex file and processes "dangling text", or text that
+	# does not belong to a designated section. It finds these strings by search-
+	# ing for text in between any two consecutive "./ sectionStart" and 
+	# "./ sectionEnd" These text will sometimes have references to tables, iden-
+	# tifiable by the argument in the "\ref{<argument>}" macro. Each table will
+	# have a unique integer that it can be identified with, consistent with the
+	# Latex file.
+	# The function will return the processed string with an indication array of 
+	# which tables are to be appended to the end of the man page.  
 	tables = [0, 0, 0, 0, 0]
 	last = 0
 	while(tex.find("./ sectionEnd", last) > 0):
@@ -589,6 +598,10 @@ def refTextReplacements(tex):
 	return (tex, tables)
 
 def refMEMReplacements(tex):
+	# Searches through the tex for any reference that specifically points to 
+	# the memory modelled and replaces that sentence with a hard-coded string.
+	# Processing the section that was in the original text is not an option
+	# because the reference the Latex file does not apply to the man pages.
 	if (tex.find("\\ref{subsec:memory_model}") != -1):
 		while(tex.find("\\ref{subsec:memory_model}") != -1):
 			index = tex.find("\\ref{subsec:memory_model}")
@@ -606,6 +619,43 @@ def refMEMReplacements(tex):
 	return tex
 
 def parseRefTables(tableTex):
+	# The function takes in a tex file that contains a type table as input
+	# and returns the processed table in tabular form.
+	# All elements within the tex file that is desired will follow the 
+	# following pattern:
+	# 
+	#		<firstCol>	&	<secondCol> \\ \hline
+	#
+	# The following code will convert the above text to display in tabular 
+	# form. 
+	# In the special case of the first row that follows the pattern above,
+	# the code will bold the strings of <firstCol> and <secondCol> for this
+	# row only, for these are the column headers 
+	#
+	# The tabular header is:
+	# 				.TP <number>
+	# 				<firstCol>
+	# 				<secondCol>
+	# where <number> is the number of spaces between the start of firstCol
+	# and the start of secondCol. 
+	# Displays as:
+	# 				<firstCol>					 <secondCol>
+	# 				<----------<number>---------->
+	# If the length of <firstCol> surpasses <number>, it will display as:
+	# 				<----------<number>---------->
+	# 				<firstCol>					 
+	# 											 <secondCol>
+	#
+	# Every row of the table must include the ".TP" or the text will be
+	# processed with default formatting. 
+	# If there there is no <number>, the script will default to 1, or the
+	# lastest definition of <number> in the current table
+	# NOTE: Typically manpages ignores "\n" within the text and displays
+	# the text as if there is no "\n". Under the ".TP" header, the flag
+	# for when the second column begins is the next "\n" 
+	# 
+	# .B at the start of a line will underline/italicize all text until
+	# the next "\n"
 	startIdx = tableTex.find("\\hline")
 	endIdx = tableTex.find("\\end{tabular}")
 	table = cleanText(tableTex[startIdx + len("\\hline"):endIdx])
@@ -624,7 +674,12 @@ def parseRefTables(tableTex):
 		count += 1
 	return text
 
-def table(tableID, directory):
+def addRefTable(tableID, directory):
+	# This function maps the tableID given to each reference table to its
+	# corresponding to tex file that contains the table. It then calls a
+	# helper function to parse the table and returns the subsection text, 
+	# containing the subsection header, the caption for the table, and the
+	# table.
 	if tableID == 1:
 		tableTex = open(directory + "/stdrmatypes.tex", "r").read()
 	elif tableID == 2: 
@@ -635,11 +690,11 @@ def table(tableID, directory):
 		tableTex = open(directory + "/bitamotypes.tex", "r").read()
 	else:
 		tableTex = open(directory + "/p2psynctypes.tex", "r").read()
-	captionIdx = tableTex.find("\\caption{")
-	startBrace = captionIdx + len("\\caption{")
+	captionIdx = tableTex.find("\\caption")
+	startBrace = captionIdx + len("\\caption")
 	endBrace = findMatchingBrace(tableTex, startBrace)
 
-	caption = generalReplacements(tableTex[startBrace:endBrace])
+	caption = generalReplacements(tableTex[startBrace+1:endBrace])
 	text = ".SS Table " + str(tableID) + ":\n" + caption + "\n" + \
 			parseRefTables(tableTex)
 	return text
@@ -649,6 +704,20 @@ def table(tableID, directory):
 ##########################################################################
 
 def synCReplacements(tex, keyString):
+	# Replaces the code identified between "\begin{<keyString>}" and 
+	# "\end{<keyString>}" to have C keywords (defined as a global variable) 
+	# bolded and the argument variables underlined. 
+	# 
+	# .B at the start of a line will bold all text until
+	# the next "\n"
+	# .I at the start of a line will underline/italicize all text until
+	# the next "\n"
+	# .IB will alternate between bold and underline/italicize font. For 
+	# example:
+	# 
+	# .IB "A" "B" "C"
+	#
+	# will have "A" and "C" as italicized and "B" will be bolded.
 	while (tex.find("\\begin{" + keyString + "}") != -1):
 		startOfText = tex.find("\\begin{" + keyString + "}")
 		endOfText = tex.find("\\end{" + keyString + "}")
@@ -694,6 +763,17 @@ def synCReplacements(tex, keyString):
 	return tex
 
 def synFReplacements(tex):
+	# Replaces the code identified between "\begin{Fsynopsis}" and 
+	# "\end{Fsynopsis}" to have Fortran keywords (defined as a global 
+	# variable) bolded. 
+	# 
+	# .B at the start of a line will bold all text until
+	# the next "\n"
+	# .BR will alternate between bold and regular font. For example:
+	# 
+	# .BR "A" "B" "C"
+	#
+	# will have "A" and "C" as bolded and "B" will be regular.
 	while (tex.find("\\begin{Fsynopsis}") != -1):
 		startOfText = tex.find("\\begin{Fsynopsis}")
 		endOfText = tex.find("\\end{Fsynopsis}")
@@ -729,6 +809,13 @@ def codeReplace(tex):
 ##########################################################################
 
 def cleanText(text):
+	# Gets rid of consecutive spaces and tabs in the given text but maintains
+	# any "\n\n" which is the indicator of a new paragraph. For every para-
+	# graph, the code will replace all macros and rejoin the paragraphs as 
+	# the final return string.
+	# NOTE: Typically manpages ignores "\n" within the text and displays
+	# the text as if there is no "\n". "\n\n" will parsed as the beginning
+	# of a new paragraph.
 	text = text.replace("\t", "")
 	while(text.find("  ") != -1):
 		text = text.replace("  ", " ")
@@ -752,13 +839,11 @@ def macroReplacements(paragraph):
 	paragraph = funcReplacements(paragraph)
 	paragraph = italReplacements(paragraph)
 	paragraph = paragraph.replace("\n ", "\n")
-	paragraph = paragraph.replace("\n\n.BR ", "\n.BR ")
-	paragraph = paragraph.replace("\n\n.B ", "\n.B ")
-	paragraph = paragraph.replace("\n\n.I ", "\n.I ")
-	paragraph = paragraph.replace("\n\n.IR ", "\n.IR ")
 	return paragraph
 
 def generateRoutineList(TOC):
+	# Takes the Table of Contents and compiles a list of all function names
+	# that needs to be parsed to manpages
 	count = 0;
 	routineList = []
 	while(TOC.find("\\subsubsection{\\textbf", count) > 0):
@@ -774,10 +859,13 @@ def generateRoutineList(TOC):
 	return routineList
 
 def findMatchingBrace(tex, ind):
+	# Takes in the tex string and the index of the open brace to which we 
+	# need to find the matching brace. 
+	# Function returns the index of the matching brace
 	count = 0
 	if (tex[ind] == "{"):
 		count += 1
-	ptr = ind + 1
+		ptr = ind + 1
 	while(count != 0):
 		if(tex[ptr] == "{"):
 			count = count + 1
@@ -822,15 +910,15 @@ def convertFile(functionName, directory, gen_dir):
 		tex = exampleReplacements(tex, directory)
 	(tex, tables) = refTextReplacements(tex)
 	if (tables[0]):
-		tex = tex + table(1, directory)
+		tex = tex + addRefTable(1, directory)
 	if (tables[1]):
-		tex = tex + table(2, directory)
+		tex = tex + addRefTable(2, directory)
 	if (tables[2]):
-		tex = tex + table(3, directory)
+		tex = tex + addRefTable(3, directory)
 	if (tables[3]):
-		tex = tex + table(4, directory)
+		tex = tex + addRefTable(4, directory)
 	if (tables[4]):
-		tex = tex + table(5, directory)
+		tex = tex + addRefTable(5, directory)
 	tex = tex.replace("\\begin{apidefinition}", "")
 	tex = tex.replace("\\end{apidefinition}", "")
 	text = tex[:tex.find(".SS Examples")]
