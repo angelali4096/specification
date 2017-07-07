@@ -65,8 +65,8 @@ CALL SHMEM_REAL_GET(dest, source, nelems, pe)
     which are as follows:
 }{Routine}{Data type of \VAR{dest} and \VAR{source}}
 
-    \apitablerow{shmem\_getmem}{\Fortran: Any noncharacter type. \Cstd: Any
-        data  type.  nelems is scaled in bytes.}
+    \apitablerow{shmem\_getmem}{\Fortran: Any noncharacter type. }
+    \apitablerow{}{\Cstd: Any data  type.  nelems is scaled in bytes.}
     \apitablerow{shmem\_get4, shmem\_get32}{Any noncharacter type
         that has a storage size equal to \CONST{32} bits.}
     \apitablerow{shmem\_get8}{\Cstd: Any noncharacter type that
