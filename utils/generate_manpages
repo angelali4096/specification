@@ -12,6 +12,12 @@ boldWordsC = {"void", "int", "const", "size_t", "short", "ptrdiff_t",
 boldWordsF = {"INTEGER", "CALL", "POINTER", "LOGICAL", "INTEGER*4",
 				"INTEGER*8", "REAL*4", "REAL*8", "CHARACTER"}
 
+#THOUGHT: Use triple quotes to be compatible with Python docstrings, like this:
+def somethingUseful(someArg):
+    """This is the docstring, when you type help(somethingUseful),
+    it prints the help string in a nice way..."""
+    some_code = 0
+    return some_code
 
 def writePageHeader(functionName):
 	# Write the page header for the man page. Takes in the form of:
@@ -41,6 +47,7 @@ def funcReplacements(tex):
 	# .BR "A" "B" "C"
 	#
 	# will have "A" and "C" as bolded and "B" will be regular.
+        # THOUGHT: When will this alternating bold happen? I don't see why we would want that...
 	keyString = "\FUNC{"
 	while (tex.find(keyString) != -1):
 		index = tex.find(keyString)
@@ -51,9 +58,9 @@ def funcReplacements(tex):
 			tex = tex[:index] + "\n" + \
 					".BR \"" + innerText + \
 					"\" .\n" + tex[endBrace+2:]
-		else:
-			if(tex[endBrace + 1] == " "):
-				tex = tex[:index] + "\n" + \
+		else:                                                                
+                    if(tex[endBrace + 1] == " "):                                # THOUGHT: Can you just strip() the string first instead
+				tex = tex[:index] + "\n" + \                     # of checking for the space?
 					".B " + innerText + \
 					"\n" + tex[endBrace+2:]
 			else:
@@ -844,6 +851,7 @@ def macroReplacements(paragraph):
 def generateRoutineList(TOC):
 	# Takes the Table of Contents and compiles a list of all function names
 	# that needs to be parsed to manpages
+        # THOUGHT: Perhaps note the assumption that subsubsection and textbf demarcate the API sections
 	count = 0;
 	routineList = []
 	while(TOC.find("\\subsubsection{\\textbf", count) > 0):
@@ -953,6 +961,8 @@ def main():
 			exit(1)
 		else:
 			print("Dir found")
+                        
+                        # THOUGHT: check that file exists, if not, print informative error
 			TOC = open(args.directory + "../main_spec.tex").read()
 			routineList = generateRoutineList(TOC)
 			for routine in routineList:
