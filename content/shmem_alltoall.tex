@@ -101,18 +101,18 @@ constraints, which are as follows:
 
 \apinotes{
     This routine restores \VAR{pSync} to its original contents.  Multiple calls
-    to \openshmem\ routines that use the same \VAR{pSync} array do not require
+    to \openshmem routines that use the same \VAR{pSync} array do not require
     that \VAR{pSync} be reinitialized after the first call.
     You must ensure that the \VAR{pSync} array is not being updated by any
     \ac{PE} in the \activeset{} while any of the \acp{PE} participates in
-    processing of an \openshmem\ \FUNC{shmem\_alltoall} routine. Be careful to
+    processing of an \openshmem \FUNC{shmem\_alltoall} routine. Be careful to
     avoid these situations: If the \VAR{pSync} array is initialized at run time,
     some type of synchronization is needed to ensure that all \acp{PE} in the
     \activeset{} have initialized \VAR{pSync} before any of them enter an
-    \openshmem\ routine called with the \VAR{pSync} synchronization array.  A
-    \VAR{pSync} array may be reused on a subsequent \openshmem\
+    \openshmem routine called with the \VAR{pSync} synchronization array.  A
+    \VAR{pSync} array may be reused on a subsequent \openshmem
     \FUNC{shmem\_alltoall} routine only if none of the \acp{PE} in the
-    \activeset{} are still processing a prior \openshmem\ \FUNC{shmem\_alltoall}
+    \activeset{} are still processing a prior \openshmem \FUNC{shmem\_alltoall}
     routine call that used the same \VAR{pSync} array.  In general, this can be
     ensured only by doing some type of synchronization.
 }
