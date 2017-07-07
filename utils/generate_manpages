@@ -952,11 +952,11 @@ def main():
 		else:
 			print("Dir found")
             
-			if not os.path.isfile(args.directory + "../main_spec.tex"):
+			if not os.path.isfile(args.directory + "/../main_spec.tex"):
 				print("Error: main_spec.tex is not found in the parent of the given directory.")
 				exit(1)
 
-			TOC = open(args.directory + "../main_spec.tex").read()
+			TOC = open(args.directory + "/../main_spec.tex").read()
 			routineList = generateRoutineList(TOC)
 			for routine in routineList:
 				if routine + ".tex" not in os.listdir(args.directory):
