@@ -12,13 +12,6 @@ boldWordsC = {"void", "int", "const", "size_t", "short", "ptrdiff_t",
 boldWordsF = {"INTEGER", "CALL", "POINTER", "LOGICAL", "INTEGER*4",
 				"INTEGER*8", "REAL*4", "REAL*8", "CHARACTER"}
 
-# #THOUGHT: Use triple quotes to be compatible with Python docstrings, like this:
-# def somethingUseful(someArg):
-#     """This is the docstring, when you type help(somethingUseful),
-#     it prints the help string in a nice way..."""
-#     some_code = 0
-#     return some_code
-
 def writePageHeader(functionName):
 	"""Write the page header for the man page. Takes in the form of:
 	.TH [name of program] [section number] [center footer] [left footer] 
