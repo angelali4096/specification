@@ -12,17 +12,18 @@ boldWordsC = {"void", "int", "const", "size_t", "short", "ptrdiff_t",
 boldWordsF = {"INTEGER", "CALL", "POINTER", "LOGICAL", "INTEGER*4",
 				"INTEGER*8", "REAL*4", "REAL*8", "CHARACTER"}
 
-#THOUGHT: Use triple quotes to be compatible with Python docstrings, like this:
-def somethingUseful(someArg):
-    """This is the docstring, when you type help(somethingUseful),
-    it prints the help string in a nice way..."""
-    some_code = 0
-    return some_code
+# #THOUGHT: Use triple quotes to be compatible with Python docstrings, like this:
+# def somethingUseful(someArg):
+#     """This is the docstring, when you type help(somethingUseful),
+#     it prints the help string in a nice way..."""
+#     some_code = 0
+#     return some_code
 
 def writePageHeader(functionName):
-	# Write the page header for the man page. Takes in the form of:
-	# .TH [name of program] [section number] [center footer] [left footer] 
-	# 	  [center header]
+	"""Write the page header for the man page. Takes in the form of:
+	.TH [name of program] [section number] [center footer] [left footer] 
+		  [center header]"""
+
 	titleHeader = ".TH " + functionName.upper() + " 3 " \
 					 + "" + "" \
 					 + "\"Open Source Software Solutions, Inc.\"" + "" \
@@ -34,20 +35,13 @@ def writePageHeader(functionName):
 ##########################################################################
 
 def funcReplacements(tex):
-	# Convert every FUNC macro with the bolded argument string 
-	#(.B <argument>).
-	# -- Special consideration to any periods after the macro, since a 
-	# period at the beginning of a line denotes a comment and the 
-	# entire line will not appear.
-	# (.BR <argument> .)
-	#
-	# .B at the start of a line will bold all text until the next "\n"
-	# .BR will alternate between bold and regular font. For example:
-	# 
-	# .BR "A" "B" "C"
-	#
-	# will have "A" and "C" as bolded and "B" will be regular.
-        # THOUGHT: When will this alternating bold happen? I don't see why we would want that...
+	"""Convert every FUNC macro with the bolded argument string 
+	(.B <argument>).
+	-- Special consideration to any periods after the macro, since a 
+	period at the beginning of a line denotes a comment and the 
+	entire line will not appear.
+	(.BR <argument> .)"""
+
 	keyString = "\FUNC{"
 	while (tex.find(keyString) != -1):
 		index = tex.find(keyString)
@@ -59,33 +53,21 @@ def funcReplacements(tex):
 					".BR \"" + innerText + \
 					"\" .\n" + tex[endBrace+2:]
 		else:                                                                
-                    if(tex[endBrace + 1] == " "):                                # THOUGHT: Can you just strip() the string first instead
-				tex = tex[:index] + "\n" + \                     # of checking for the space?
-					".B " + innerText + \
-					"\n" + tex[endBrace+2:]
-			else:
-				tex = tex[:index] + "\n" + \
-					".B " + innerText + \
-					"\n" + tex[endBrace+1:]
+			tex = tex[:index] + "\n" + \
+				".B " + innerText + \
+				"\n" + tex[endBrace+1:]
 	return tex
 
 def varReplacements(tex, keyString):
-	# Convert every VAR/VARTH macro with the bolded argument string 
-	#(.I <argument>).
-	# -- Special consideration to any periods after the macro, since a 
-	# period at the beginning of a line denotes a comment and the 
-	# entire line will not appear.
-	# (.IR <argument> .)
-	# -- Special consideration to any argument of "VARTH", which will 
-	# require appending "th" to the argument string.
-	#
-	# .I at the start of a line will underline/italicize all text until
-	# the next "\n"
-	# .IR will alternate between bold and regular font. For example:
-	# 
-	# .IR "A" "B" "C"
-	#
-	# will have "A" and "C" as italicized and "B" will be regular.
+	"""Convert every VAR/VARTH macro with the bolded argument string 
+	(.I <argument>).
+	-- Special consideration to any periods after the macro, since a 
+	period at the beginning of a line denotes a comment and the 
+	entire line will not appear.
+	(.IR <argument> .)
+	-- Special consideration to any argument of "VARTH", which will 
+	require appending "th" to the argument string."""
+
 	while (tex.find(keyString) != -1):
 		index = tex.find(keyString)
 		startBrace = tex.find("{", index)
@@ -110,7 +92,8 @@ def variableReplacements(tex):
 	return tex
 
 def mBoxReplacements(tex):
-	# Replace the Latex command "|mbox{<argument>}|" with just argument
+	"""Replace the Latex command "|mbox{<argument>}|" with just argument """
+
 	while (tex.find("|\mbox") != -1):
 		index = tex.find("|\mbox")
 		sbrace = tex.find("{", index)
@@ -121,13 +104,14 @@ def mBoxReplacements(tex):
 	return tex
 
 def boldReplacements(tex):
-	# SPECIFIC TO shmem_reductions:
-	# Replace the Latex command: 
-	# "\textbf{<NAME>} \newline <text> <code> \newline...\bigskip" 
-	# --NAME will the title of a new section header with <text> as the 
-	# immediate content. 
-	# -- <code> will be replaced as normal (See function codeReplace(tex))
-	# -- \bigskip will be replaced by the empty string.
+	"""SPECIFIC TO shmem_reductions:
+	Replace the Latex command: 
+	"\\textbf{<NAME>} \\newline <text> <code> \\newline...\\bigskip" 
+	--NAME will the title of a new section header with <text> as the 
+	immediate content. 
+	-- <code> will be replaced as normal (See function codeReplace(tex))
+	-- \\bigskip will be replaced by the empty string. """
+
 	while (tex.find("\\textbf{") != -1):
 		beg = tex.find("\\textbf{")
 		sbrace = tex.find("{", beg)
@@ -143,8 +127,9 @@ def boldReplacements(tex):
 	return tex
 
 def italReplacements(tex):
-	# Replace the Latex command "\textit{<argument>}" with just 
-	# argument
+	""" Replace the Latex command "\\textit{<argument>}" with just 
+	argument """
+
 	while (tex.find("\\textit{") != -1):
 		beg = tex.find("\\textit{")
 		sbrace = tex.find("{", beg)
@@ -154,22 +139,15 @@ def italReplacements(tex):
 	return tex
 
 def oprReplacements(tex):
-	# Convert every OPR macro with the bolded argument string 
-	#(.I <argument>).
-	# -- Special consideration to any periods after the macro, since a 
-	# period at the beginning of a line denotes a comment and the 
-	# entire line will not appear.
-	# (.IR <argument> .)
-	# -- Special consideration to any argument of "VARTH", which will 
-	# require appending "th" to the argument string.
+	"""Convert every OPR macro with the bolded argument string 
+	(.I <argument>).
+	-- Special consideration to any periods after the macro, since a 
+	period at the beginning of a line denotes a comment and the 
+	entire line will not appear.
+	(.IR <argument> .)
+	-- Special consideration to any argument of "VARTH", which will 
+	require appending "th" to the argument string. """
 
-	# .I at the start of a line will underline/italicize all text until
-	# the next "\n"
-	# .IR will alternate between bold and regular font. For example:
-	# 
-	# .IR "A" "B" "C"
-	#
-	# will have "A" and "C" as italicized and "B" will be regular.
 	while (tex.find("\\OPR") != -1):
 		index = tex.find("\\OPR")
 		startBrace = tex.find("{", index)
@@ -183,8 +161,9 @@ def oprReplacements(tex):
 	return tex
 
 def constReplacements(tex):
-	# Replace the Latex command "\CONST{<argument>}" with just 
-	# argument
+	"""Replace the Latex command "\CONST{<argument>}" with just 
+	argument. """
+
 	while (tex.find("\\CONST") != -1):
 		index = tex.find("\\CONST")
 		startBrace = tex.find("{", index)
@@ -193,12 +172,13 @@ def constReplacements(tex):
 	return tex
 
 def generalReplacements(tex):
-	# Replace the common Latex macros that take in no arguments and all 
-	# Latex definitions that contain a backslash (which may have unde-
-	# fined behavior in the actual manpage). Some text may need to be 
-	# processed separately if it is followed by a period, which will 
-	# cause all text in the same line following the period to be not 
-	# shown.
+	"""Replace the common Latex macros that take in no arguments and all 
+	Latex definitions that contain a backslash (which may have unde-
+	fined behavior in the actual manpage). Some text may need to be 
+	processed separately if it is followed by a period, which will 
+	cause all text in the same line following the period to be not 
+	shown."""
+
 	tex = tex.replace("\openshmem{}", "OpenSHMEM")
 	tex = tex.replace("\openshmem", "OpenSHMEM")
 	tex = tex.replace("\\acp{PE}", "PEs")
@@ -234,16 +214,17 @@ def generalReplacements(tex):
 ##########################################################################
 
 def descrReplacements(tex):
-	# Search tex file for the keyString "\apidecription{" and its matching
-	# parenthesis. All text between will be processed such that there are no
-	# consecutive spaces, no tabs, and unnecessary "\n". The text will then 
-	# have all the macros replaced and put back into its corresponding place
-	# in the text file. 
-	# The strings "./ sectionStart" and "./ sectionEnd" are appending at the
-	# beginning and end of the processed text, respectively, for differenti-
-	# ation between the text with sections and "dangling text".
-	# These strings will not appear in the manpage as any line that begins 
-	# with a period will be treated as a comment. 
+	"""Search tex file for the keyString "\\apidecription{" and its matching
+	parenthesis. All text between will be processed such that there are no
+	consecutive spaces, no tabs, and unnecessary "\\n". The text will then 
+	have all the macros replaced and put back into its corresponding place
+	in the text file. 
+	The strings "./ sectionStart" and "./ sectionEnd" are appending at the
+	beginning and end of the processed text, respectively, for differenti-
+	ation between the text with sections and "dangling text".
+	These strings will not appear in the manpage as any line that begins 
+	with a period will be treated as a comment. """
+
 	startOfText = tex.find("\\apidescription{")
 	endOfText = findMatchingBrace(tex, tex.find("{", startOfText))
 	sectionText = cleanText(tex[startOfText:endOfText])
@@ -254,16 +235,17 @@ def descrReplacements(tex):
 	return tex
 
 def retReplacements(tex):
-	# Search tex file for the keyString "\apireturnavalues{" and its matching
-	# parenthesis. All text between will be processed such that there are no
-	# consecutive spaces, no tabs, and unnecessary "\n". The text will then 
-	# have all the macros replaced and put back into its corresponding place
-	# in the text file. 
-	# The strings "./ sectionStart" and "./ sectionEnd" are appending at the
-	# beginning and end of the processed text, respectively, for differenti-
-	# ation between the text with sections and "dangling text".
-	# These strings will not appear in the manpage as any line that begins 
-	# with a period will be treated as a comment. 
+	"""Search tex file for the keyString "\\apireturnavalues{" and its matching
+	parenthesis. All text between will be processed such that there are no
+	consecutive spaces, no tabs, and unnecessary "\\n". The text will then 
+	have all the macros replaced and put back into its corresponding place
+	in the text file. 
+	The strings "./ sectionStart" and "./ sectionEnd" are appending at the
+	beginning and end of the processed text, respectively, for differenti-
+	ation between the text with sections and "dangling text".
+	These strings will not appear in the manpage as any line that begins 
+	with a period will be treated as a comment. """
+
 	startOfText = tex.find("\\apireturnvalues{")
 	endOfText = findMatchingBrace(tex, tex.find("{", startOfText))
 	sectionText = cleanText(tex[startOfText:endOfText])
@@ -274,16 +256,17 @@ def retReplacements(tex):
 	return tex
 
 def notesReplacements(tex):
-	# Search tex file for the keyString "\apinotes{" and its matching
-	# parenthesis. All text between will be processed such that there are no
-	# consecutive spaces, no tabs, and unnecessary "\n". The text will then 
-	# have all the macros replaced and put back into its corresponding place
-	# in the text file. 
-	# The strings "./ sectionStart" and "./ sectionEnd" are appending at the
-	# beginning and end of the processed text, respectively, for differenti-
-	# ation between the text with sections and "dangling text".
-	# These strings will not appear in the manpage as any line that begins 
-	# with a period will be treated as a comment. 
+	"""Search tex file for the keyString "\\apinotes{" and its matching
+	parenthesis. All text between will be processed such that there are no
+	consecutive spaces, no tabs, and unnecessary "\\n". The text will then 
+	have all the macros replaced and put back into its corresponding place
+	in the text file. 
+	The strings "./ sectionStart" and "./ sectionEnd" are appending at the
+	beginning and end of the processed text, respectively, for differenti-
+	ation between the text with sections and "dangling text".
+	These strings will not appear in the manpage as any line that begins 
+	with a period will be treated as a comment. """
+
 	startOfText = tex.find("\\apinotes{")
 	endOfText = findMatchingBrace(tex, tex.find("{", startOfText))
 	sectionText = cleanText(tex[startOfText:endOfText])
@@ -294,16 +277,17 @@ def notesReplacements(tex):
 	return tex
 
 def impnotesReplacements(tex):
-	# Search tex file for the keyString "\apiimpnotes{" and its matching
-	# parenthesis. All text between will be processed such that there are no
-	# consecutive spaces, no tabs, and unnecessary "\n". The text will then 
-	# have all the macros replaced and put back into its corresponding place
-	# in the text file. 
-	# The strings "./ sectionStart" and "./ sectionEnd" are appending at the
-	# beginning and end of the processed text, respectively, for differenti-
-	# ation between the text with sections and "dangling text".
-	# These strings will not appear in the manpage as any line that begins 
-	# with a period will be treated as a comment. 
+	"""Search tex file for the keyString "\\apiimpnotes{" and its matching
+	parenthesis. All text between will be processed such that there are no
+	consecutive spaces, no tabs, and unnecessary "\\n". The text will then 
+	have all the macros replaced and put back into its corresponding place
+	in the text file. 
+	The strings "./ sectionStart" and "./ sectionEnd" are appending at the
+	beginning and end of the processed text, respectively, for differenti-
+	ation between the text with sections and "dangling text".
+	These strings will not appear in the manpage as any line that begins 
+	with a period will be treated as a comment. """
+
 	startOfText = tex.find("\\apiimpnotes{")
 	endOfText = findMatchingBrace(tex, tex.find("{", startOfText))
 	sectionText = cleanText(tex[startOfText:endOfText])
@@ -314,16 +298,17 @@ def impnotesReplacements(tex):
 	return tex
 
 def sumReplacements(tex, functionName):
-	# Search tex file for the keyString "\apisummary{" and its matching
-	# parenthesis. All text between will be processed such that there are no
-	# consecutive spaces, no tabs, and unnecessary "\n". The text will then 
-	# have all the macros replaced and put back into its corresponding place
-	# in the text file. 
-	# The strings "./ sectionStart" and "./ sectionEnd" are appending at the
-	# beginning and end of the processed text, respectively, for differenti-
-	# ation between the text with sections and "dangling text".
-	# These strings will not appear in the manpage as any line that begins 
-	# with a period will be treated as a comment. 
+	"""Search tex file for the keyString "\\apisummary{" and its matching
+	parenthesis. All text between will be processed such that there are no
+	consecutive spaces, no tabs, and unnecessary "\\n". The text will then 
+	have all the macros replaced and put back into its corresponding place
+	in the text file. 
+	The strings "./ sectionStart" and "./ sectionEnd" are appending at the
+	beginning and end of the processed text, respectively, for differenti-
+	ation between the text with sections and "dangling text".
+	These strings will not appear in the manpage as any line that begins 
+	with a period will be treated as a comment. """
+
 	startOfText = tex.find("\\apisummary{")
 	endOfText = findMatchingBrace(tex, tex.find("{", startOfText))
 	sectionText = cleanText(tex[startOfText:endOfText])
@@ -336,16 +321,17 @@ def sumReplacements(tex, functionName):
 	return tex
 
 def exampleCodeReplace(sectionText, in_directory, keyString):
-	# Searches throught the given text and replaces the files of code with
-	# the actual code in the file. 
-	# 
-	# All examples in the Latex file follows the following pattern:
-	# \\keyString{<pre-text>}{<directory to code>}{<post-text>}
-	# -- The <pre-text> and <post-text> should have already been processed 
-	# prior to this function call and will be concatenated to the return
-	# string.
-	# -- The pattern ".nf\n ... .fi\n" will have the text in between ".nf"
-	# and "fi" be presented without formatting. 
+	"""Searches throught the given text and replaces the files of code with
+	the actual code in the file. 
+	
+	All examples in the Latex file follows the following pattern:
+		\keyString{<pre-text>}{<directory to code>}{<post-text>}
+	-- The <pre-text> and <post-text> should have already been processed 
+	prior to this function call and will be concatenated to the return
+	string.
+	-- The pattern ".nf\\n ... .fi\\n" will have the text in between ".nf"
+	and "fi" be presented without formatting. """
+
 	while(sectionText.find(keyString) != -1):
 		startOfText = sectionText.find(keyString)
 		firstStartBrace = sectionText.find("{", startOfText)
@@ -366,20 +352,21 @@ def exampleCodeReplace(sectionText, in_directory, keyString):
 	return sectionText
 
 def exampleReplacements(tex, in_directory):
-	# Search tex file for the keyString "\begin{apiexamples}" and its matching
-	# "\\end{apiexamples}". All text between will be processed such that there 
-	# are no consecutive spaces, no tabs, and unnecessary "\n". The text will 
-	# then have all the macros replaced and put back into its corresponding 
-	# placein the text file. 
-	# The string "./ sectionStart" is appended at the beginning of the pro-
-	# cessed text, for differentiation between the text with sections and 
-	# "dangling text". These strings will not appear in the manpage as any 
-	# line that begins with a period will be treated as a comment. 
-	# NOTE: There is no corresponding "./ sectionEnd" in this section because
-	# the example section of the manpage is always the last section. 
-	# Dangling text is identified as the text between a "./ sectionEnd" and
-	# ./sectionStart. Since there will be no text following this section, the
-	# "./ sectionEnd" flag is no necessary.
+	"""Search tex file for the keyString "\\begin{apiexamples}" and its matching
+	"\\end{apiexamples}". All text between will be processed such that there 
+	are no consecutive spaces, no tabs, and unnecessary "\\n". The text will 
+	then have all the macros replaced and put back into its corresponding 
+	placein the text file. 
+	The string "./ sectionStart" is appended at the beginning of the pro-
+	cessed text, for differentiation between the text with sections and 
+	"dangling text". These strings will not appear in the manpage as any 
+	line that begins with a period will be treated as a comment. 
+	NOTE: There is no corresponding "./ sectionEnd" in this section because
+	the example section of the manpage is always the last section. 
+	Dangling text is identified as the text between a "./ sectionEnd" and
+	./sectionStart. Since there will be no text following this section, the
+	"./ sectionEnd" flag is no necessary. """
+
 	startOfText = tex.find("\\begin{apiexamples}")
 	endOfText = tex.find("\\end{apiexamples}")
 	text = tex[startOfText + len("\\begin{apiexamples}"):endOfText]
@@ -397,17 +384,18 @@ def exampleReplacements(tex, in_directory):
 	return tex
 
 def argReplacements(tex):
-	# All elements within the section defined between "\begin{apiarguments}"
-	# and "\end{apiarguments}" will follow the following pattern:
-	# 		\apiargument{<STATUS>}{<name>}{<description>}
-	# The following code will convert the above text such that STATUS will be
-	# bolded, <name> will be underlined/italicized, and <description> will be
-	# regular. 
-	# In the special case that there are no arguments, the macro will be of 
-	# the form:
-	# 		\apiargument{"None."}{}{}
-	# in which case, the code will conver the macro above to have "None." as
-	# bolded.
+	"""All elements within the section defined between "\\begin{apiarguments}"
+	and "\end{apiarguments}" will follow the following pattern:
+			\\apiargument{<STATUS>}{<name>}{<description>}
+	The following code will convert the above text such that STATUS will be
+	bolded, <name> will be underlined/italicized, and <description> will be
+	regular. 
+	In the special case that there are no arguments, the macro will be of 
+	the form:
+			\\apiargument{"None."}{}{}
+	in which case, the code will conver the macro above to have "None." as
+	bolded. """
+
 	startOfText = tex.find("\\apiargument")
 	endOfText = tex.find("\\end{apiarguments}")
 	sectionText = tex[startOfText + len("\\apiargument"):endOfText].strip()
@@ -445,40 +433,41 @@ def argReplacements(tex):
 ##########################################################################
 
 def descTReplacements(tex):
-	# All elements within the tex file defined to begin with "\apidesctable{"
-	# will follow the following pattern:
-	# 		\apidesctable{{<desc>}{<firstColHead>}{<secondColHead>}
-	# The following code will convert the above text to display such that 
-	# <desc> will display as regular text, <firstColHead> and <secondColHead>
-	# will follow the tabular header.
-	# 
-	# The tabular header is:
-	# 				.TP <number>
-	# 				<firstCol>
-	# 				<secondCol>
-	# where <number> is the number of spaces between the start of firstCol
-	# and the start of secondCol. 
-	# Displays as:
-	# 				<firstCol>					 <secondCol>
-	# 				<----------<number>---------->
-	# If the length of <firstCol> surpasses <number>, it will display as:
-	# 				<----------<number>---------->
-	# 				<firstCol>					 
-	# 											 <secondCol>
-	#
-	# Every row of the table must include the ".TP" or the text will be
-	# processed with default formatting. 
-	# If there there is no <number>, the script will default to 1, or the
-	# lastest definition of <number> in the current table
-	# NOTE: Typically manpages ignores "\n" within the text and displays
-	# the text as if there is no "\n". Under the ".TP" header, the flag
-	# for when the second column begins is the next "\n" 
-	# 
-	# The strings "./ sectionStart" and "./ sectionEnd" are appending at the
-	# beginning and end of every row processed, respectively, for differenti-
-	# ating between the text with sections and "dangling text".
-	# These strings will not appear in the manpage as any line that begins 
-	# with a period will be treated as a comment. 
+	"""All elements within the tex file defined to begin with "\\apidesctable{"
+	will follow the following pattern:
+			\\apidesctable{{<desc>}{<firstColHead>}{<secondColHead>}
+	The following code will convert the above text to display such that 
+	<desc> will display as regular text, <firstColHead> and <secondColHead>
+	will follow the tabular header.
+	
+	The tabular header is:
+					.TP <number>
+					<firstCol>
+					<secondCol>
+	where <number> is the number of spaces between the start of firstCol
+	and the start of secondCol. 
+	Displays as:
+					<firstCol>					 <secondCol>
+					<----------<number>---------->
+	If the length of <firstCol> surpasses <number>, it will display as:
+					<----------<number>---------->
+					<firstCol>					 
+												 <secondCol>
+	
+	Every row of the table must include the ".TP" or the text will be
+	processed with default formatting. 
+	If there there is no <number>, the script will default to 1, or the
+	lastest definition of <number> in the current table
+	NOTE: Typically manpages ignores "\\n" within the text and displays
+	the text as if there is no "\\n". Under the ".TP" header, the flag
+	for when the second column begins is the next "\\n" 
+	
+	The strings "./ sectionStart" and "./ sectionEnd" are appending at the
+	beginning and end of every row processed, respectively, for differenti-
+	ating between the text with sections and "dangling text".
+	These strings will not appear in the manpage as any line that begins 
+	with a period will be treated as a comment. """
+
 	index = tex.find("\\apidesctable{")
 	firstStartBrace = tex.find("{", index)
 	firstEndBrace = findMatchingBrace(tex, firstStartBrace)
@@ -497,43 +486,44 @@ def descTReplacements(tex):
 	return tex
 
 def tablerowReplacements(tex):
-	# All elements within the tex file defined to begin with "\apitablerow"
-	# will follow the following pattern:
-	# 		\apitablerow{<firstCol>}{<secondCol>}
-	# The following code will convert the above text to display in tabular 
-	# form. 
-	# 
-	# The tabular header is:
-	# 				.TP <number>
-	# 				<firstCol>
-	# 				<secondCol>
-	# where <number> is the number of spaces between the start of firstCol
-	# and the start of secondCol. 
-	# Displays as:
-	# 				<firstCol>					 <secondCol>
-	# 				<----------<number>---------->
-	# If the length of <firstCol> surpasses <number>, it will display as:
-	# 				<----------<number>---------->
-	# 				<firstCol>					 
-	# 											 <secondCol>
-	#
-	# Every row of the table must include the ".TP" or the text will be
-	# processed with default formatting. 
-	# If there there is no <number>, the script will default to 1, or the
-	# lastest definition of <number> in the current table
-	# NOTE: Typically manpages ignores "\n" within the text and displays
-	# the text as if there is no "\n". Under the ".TP" header, the flag
-	# for when the second column begins is the next "\n" 
-	#
-	# In the special case that there is no text in the first column (a 
-	# method to get the proper indentation in the Latex), continue the 
-	# text in <secondCol> from the previous row's <secondCol> text will
-	# have the same behavior from Latex. 
-	# The strings "./ sectionStart" and "./ sectionEnd" are appending at the
-	# beginning and end of every row processed, respectively, for differenti-
-	# ating between the text with sections and "dangling text".
-	# These strings will not appear in the manpage as any line that begins 
-	# with a period will be treated as a comment. 
+	"""All elements within the tex file defined to begin with "\\apitablerow"
+	will follow the following pattern:
+			\\apitablerow{<firstCol>}{<secondCol>}
+	The following code will convert the above text to display in tabular 
+	form. 
+	
+	The tabular header is:
+					.TP <number>
+					<firstCol>
+					<secondCol>
+	where <number> is the number of spaces between the start of firstCol
+	and the start of secondCol. 
+	Displays as:
+					<firstCol>					 <secondCol>
+					<----------<number>---------->
+	If the length of <firstCol> surpasses <number>, it will display as:
+					<----------<number>---------->
+					<firstCol>					 
+												 <secondCol>
+	
+	Every row of the table must include the ".TP" or the text will be
+	processed with default formatting. 
+	If there there is no <number>, the script will default to 1, or the
+	lastest definition of <number> in the current table
+	NOTE: Typically manpages ignores "\\n" within the text and displays
+	the text as if there is no "\\n". Under the ".TP" header, the flag
+	for when the second column begins is the next "\\n" 
+	
+	In the special case that there is no text in the first column (a 
+	method to get the proper indentation in the Latex), continue the 
+	text in <secondCol> from the previous row's <secondCol> text will
+	have the same behavior from Latex. 
+	The strings "./ sectionStart" and "./ sectionEnd" are appending at the
+	beginning and end of every row processed, respectively, for differenti-
+	ating between the text with sections and "dangling text".
+	These strings will not appear in the manpage as any line that begins 
+	with a period will be treated as a comment. """
+
 	while(tex.find("\\apitablerow") != -1):
 		startOfText = tex.find("\\apitablerow")
 		firstStartBrace = tex.find("{", startOfText)
@@ -564,15 +554,16 @@ def tablerowReplacements(tex):
 ##########################################################################
 
 def refTextReplacements(tex):
-	# Searches through the tex file and processes "dangling text", or text that
-	# does not belong to a designated section. It finds these strings by search-
-	# ing for text in between any two consecutive "./ sectionStart" and 
-	# "./ sectionEnd" These text will sometimes have references to tables, iden-
-	# tifiable by the argument in the "\ref{<argument>}" macro. Each table will
-	# have a unique integer that it can be identified with, consistent with the
-	# Latex file.
-	# The function will return the processed string with an indication array of 
-	# which tables are to be appended to the end of the man page.  
+	"""Searches through the tex file and processes "dangling text", or text that
+	does not belong to a designated section. It finds these strings by search-
+	ing for text in between any two consecutive "./ sectionStart" and 
+	"./ sectionEnd" These text will sometimes have references to tables, iden-
+	tifiable by the argument in the "\\ref{<argument>}" macro. Each table will
+	have a unique integer that it can be identified with, consistent with the
+	Latex file.
+	The function will return the processed string with an indication array of 
+	which tables are to be appended to the end of the man page. """
+
 	tables = [0, 0, 0, 0, 0]
 	last = 0
 	while(tex.find("./ sectionEnd", last) > 0):
@@ -605,10 +596,11 @@ def refTextReplacements(tex):
 	return (tex, tables)
 
 def refMEMReplacements(tex):
-	# Searches through the tex for any reference that specifically points to 
-	# the memory modelled and replaces that sentence with a hard-coded string.
-	# Processing the section that was in the original text is not an option
-	# because the reference the Latex file does not apply to the man pages.
+	""" Searches through the tex for any reference that specifically points to 
+	the memory modelled and replaces that sentence with a hard-coded string.
+	Processing the section that was in the original text is not an option
+	because the reference the Latex file does not apply to the man pages. """
+
 	if (tex.find("\\ref{subsec:memory_model}") != -1):
 		while(tex.find("\\ref{subsec:memory_model}") != -1):
 			index = tex.find("\\ref{subsec:memory_model}")
@@ -626,43 +618,44 @@ def refMEMReplacements(tex):
 	return tex
 
 def parseRefTables(tableTex):
-	# The function takes in a tex file that contains a type table as input
-	# and returns the processed table in tabular form.
-	# All elements within the tex file that is desired will follow the 
-	# following pattern:
-	# 
-	#		<firstCol>	&	<secondCol> \\ \hline
-	#
-	# The following code will convert the above text to display in tabular 
-	# form. 
-	# In the special case of the first row that follows the pattern above,
-	# the code will bold the strings of <firstCol> and <secondCol> for this
-	# row only, for these are the column headers 
-	#
-	# The tabular header is:
-	# 				.TP <number>
-	# 				<firstCol>
-	# 				<secondCol>
-	# where <number> is the number of spaces between the start of firstCol
-	# and the start of secondCol. 
-	# Displays as:
-	# 				<firstCol>					 <secondCol>
-	# 				<----------<number>---------->
-	# If the length of <firstCol> surpasses <number>, it will display as:
-	# 				<----------<number>---------->
-	# 				<firstCol>					 
-	# 											 <secondCol>
-	#
-	# Every row of the table must include the ".TP" or the text will be
-	# processed with default formatting. 
-	# If there there is no <number>, the script will default to 1, or the
-	# lastest definition of <number> in the current table
-	# NOTE: Typically manpages ignores "\n" within the text and displays
-	# the text as if there is no "\n". Under the ".TP" header, the flag
-	# for when the second column begins is the next "\n" 
-	# 
-	# .B at the start of a line will underline/italicize all text until
-	# the next "\n"
+	""" The function takes in a tex file that contains a type table as input
+	and returns the processed table in tabular form.
+	All elements within the tex file that is desired will follow the 
+	following pattern:
+	
+			<firstCol>	&	<secondCol> \\\\ \hline
+	
+	The following code will convert the above text to display in tabular 
+	form. 
+	In the special case of the first row that follows the pattern above,
+	the code will bold the strings of <firstCol> and <secondCol> for this
+	row only, for these are the column headers 
+	
+	The tabular header is:
+					.TP <number>
+					<firstCol>
+					<secondCol>
+	where <number> is the number of spaces between the start of firstCol
+	and the start of secondCol. 
+	Displays as:
+					<firstCol>					 <secondCol>
+					<----------<number>---------->
+	If the length of <firstCol> surpasses <number>, it will display as:
+					<----------<number>---------->
+					<firstCol>					 
+												 <secondCol>
+	
+	Every row of the table must include the ".TP" or the text will be
+	processed with default formatting. 
+	If there there is no <number>, the script will default to 1, or the
+	lastest definition of <number> in the current table
+	NOTE: Typically manpages ignores "\\n" within the text and displays
+	the text as if there is no "\\n". Under the ".TP" header, the flag
+	for when the second column begins is the next "\\n" 
+	
+	.B at the start of a line will underline/italicize all text until
+	the next "\\n" """
+
 	startIdx = tableTex.find("\\hline")
 	endIdx = tableTex.find("\\end{tabular}")
 	table = cleanText(tableTex[startIdx + len("\\hline"):endIdx])
@@ -682,11 +675,12 @@ def parseRefTables(tableTex):
 	return text
 
 def addRefTable(tableID, directory):
-	# This function maps the tableID given to each reference table to its
-	# corresponding to tex file that contains the table. It then calls a
-	# helper function to parse the table and returns the subsection text, 
-	# containing the subsection header, the caption for the table, and the
-	# table.
+	""" This function maps the tableID given to each reference table to its
+	corresponding to tex file that contains the table. It then calls a
+	helper function to parse the table and returns the subsection text, 
+	containing the subsection header, the caption for the table, and the
+	table. """
+
 	if tableID == 1:
 		tableTex = open(directory + "/stdrmatypes.tex", "r").read()
 	elif tableID == 2: 
@@ -711,20 +705,21 @@ def addRefTable(tableID, directory):
 ##########################################################################
 
 def synCReplacements(tex, keyString):
-	# Replaces the code identified between "\begin{<keyString>}" and 
-	# "\end{<keyString>}" to have C keywords (defined as a global variable) 
-	# bolded and the argument variables underlined. 
-	# 
-	# .B at the start of a line will bold all text until
-	# the next "\n"
-	# .I at the start of a line will underline/italicize all text until
-	# the next "\n"
-	# .IB will alternate between bold and underline/italicize font. For 
-	# example:
-	# 
-	# .IB "A" "B" "C"
-	#
-	# will have "A" and "C" as italicized and "B" will be bolded.
+	""" Replaces the code identified between "\\begin{<keyString>}" and 
+	"\end{<keyString>}" to have C keywords (defined as a global variable) 
+	bolded and the argument variables underlined. 
+	
+	.B at the start of a line will bold all text until
+	the next "\\n"
+	.I at the start of a line will underline/italicize all text until
+	the next "\\n"
+	.IB will alternate between bold and underline/italicize font. For 
+	example:
+	
+	.IB "A" "B" "C"
+	
+	will have "A" and "C" as italicized and "B" will be bolded. """
+
 	while (tex.find("\\begin{" + keyString + "}") != -1):
 		startOfText = tex.find("\\begin{" + keyString + "}")
 		endOfText = tex.find("\\end{" + keyString + "}")
@@ -770,17 +765,18 @@ def synCReplacements(tex, keyString):
 	return tex
 
 def synFReplacements(tex):
-	# Replaces the code identified between "\begin{Fsynopsis}" and 
-	# "\end{Fsynopsis}" to have Fortran keywords (defined as a global 
-	# variable) bolded. 
-	# 
-	# .B at the start of a line will bold all text until
-	# the next "\n"
-	# .BR will alternate between bold and regular font. For example:
-	# 
-	# .BR "A" "B" "C"
-	#
-	# will have "A" and "C" as bolded and "B" will be regular.
+	""" Replaces the code identified between "\\begin{Fsynopsis}" and 
+	"\end{Fsynopsis}" to have Fortran keywords (defined as a global 
+	variable) bolded. 
+	
+	.B at the start of a line will bold all text untilthe next "\\n"
+
+	.BR will alternate between bold and regular font. For example:
+	
+	.BR "A" "B" "C"
+	
+	will have "A" and "C" as bolded and "B" will be regular. """
+
 	while (tex.find("\\begin{Fsynopsis}") != -1):
 		startOfText = tex.find("\\begin{Fsynopsis}")
 		endOfText = tex.find("\\end{Fsynopsis}")
@@ -816,13 +812,13 @@ def codeReplace(tex):
 ##########################################################################
 
 def cleanText(text):
-	# Gets rid of consecutive spaces and tabs in the given text but maintains
-	# any "\n\n" which is the indicator of a new paragraph. For every para-
-	# graph, the code will replace all macros and rejoin the paragraphs as 
-	# the final return string.
-	# NOTE: Typically manpages ignores "\n" within the text and displays
-	# the text as if there is no "\n". "\n\n" will parsed as the beginning
-	# of a new paragraph.
+	""" Gets rid of consecutive spaces and tabs in the given text but maintains
+	any "\\n\\n" which is the indicator of a new paragraph. For every para-
+	graph, the code will replace all macros and rejoin the paragraphs as 
+	the final return string.
+	NOTE: Typically manpages ignores "\\n" within the text and displays
+	the text as if there is no "\\n". "\\n\\n" will parsed as the beginning
+	of a new paragraph. """
 	text = text.replace("\t", "")
 	while(text.find("  ") != -1):
 		text = text.replace("  ", " ")
@@ -849,9 +845,10 @@ def macroReplacements(paragraph):
 	return paragraph
 
 def generateRoutineList(TOC):
-	# Takes the Table of Contents and compiles a list of all function names
-	# that needs to be parsed to manpages
-        # THOUGHT: Perhaps note the assumption that subsubsection and textbf demarcate the API sections
+	""" Takes the Table of Contents and compiles a list of all function names
+	that needs to be parsed to manpages. The code assumes that every function
+	entry will be preceded by the macro, "\\subsubsection{\\textbf" """
+
 	count = 0;
 	routineList = []
 	while(TOC.find("\\subsubsection{\\textbf", count) > 0):
@@ -867,9 +864,9 @@ def generateRoutineList(TOC):
 	return routineList
 
 def findMatchingBrace(tex, ind):
-	# Takes in the tex string and the index of the open brace to which we 
-	# need to find the matching brace. 
-	# Function returns the index of the matching brace
+	""" Takes in the tex string and the index of the open brace to which we 
+	need to find the matching brace. 
+	Function returns the index of the matching brace """
 	count = 0
 	if (tex[ind] == "{"):
 		count += 1
@@ -961,8 +958,11 @@ def main():
 			exit(1)
 		else:
 			print("Dir found")
-                        
-                        # THOUGHT: check that file exists, if not, print informative error
+            
+			if not os.path.isfile(args.directory + "../main_spec.tex"):
+				print("Error: main_spec.tex is not found in the parent of the given directory.")
+				exit(1)
+
 			TOC = open(args.directory + "../main_spec.tex").read()
 			routineList = generateRoutineList(TOC)
 			for routine in routineList:
