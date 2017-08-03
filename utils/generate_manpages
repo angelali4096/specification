@@ -1098,7 +1098,7 @@ def convertFile(functionName, directory, gen_dir):
 def main():
     parser = argparse.ArgumentParser(description='Generate OpenSHMEM manpages')
     parser.add_argument('-d', '--directory', type=str, required=False,
-                        help='OpenSHMEM specification LaTeX directory path')
+                        help='OpenSHMEM specification content LaTeX directory path')
     parser.add_argument('-o', '--output-directory', type=str, required=False, default="./man",
                         help='Output directory for generated manpages')
     parser.add_argument('-f', '--filename', type=str, required=False,
