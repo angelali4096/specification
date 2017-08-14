@@ -900,7 +900,6 @@ def codeReplace(tex):
     linkFuncsAll.extend(linkC)
     linkFuncsAll.extend(linkCCol)
     linkFuncsAll.extend(linkFortran)
-    print(linkFuncsAll)
     return (tex, linkFuncsAll)
 
 ##########################################################################
