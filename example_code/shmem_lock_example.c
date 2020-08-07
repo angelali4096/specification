@@ -1,22 +1,17 @@
-#include <stdio.h>
-#include <unistd.h>
 #include <shmem.h>
-long L = 0;
+#include <stdio.h>
 
-int main(int argc, char **argv)
-{
-   int me, slp;
-   shmem_init();
-   me = shmem_my_pe();
-   slp = 1;
-   shmem_barrier_all();
-   if (me == 1)
-      sleep (3);
-   shmem_set_lock(&L);
-   printf("%d: sleeping %d second%s...\n", me, slp, slp == 1 ? "" : "s");
-   sleep(slp);
-   printf("%d: sleeping...done\n", me);
-   shmem_clear_lock(&L);
-   shmem_barrier_all();
-   return 0;
+int main(void) {
+  static long lock = 0;
+  static int count = 0;
+  shmem_init();
+  int mype = shmem_my_pe();
+  shmem_set_lock(&lock);
+  int val = shmem_g(&count, 0); /* get count value on PE 0 */
+  printf("%d: count is %d\n", mype, val);
+  val++; /* incrementing and updating count on PE 0 */
+  shmem_p(&count, val, 0);
+  shmem_clear_lock(&lock); /* ensures count update completes before clearing the lock */
+  shmem_finalize();
+  return 0;
 }

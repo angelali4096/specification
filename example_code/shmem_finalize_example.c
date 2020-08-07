@@ -1,21 +1,19 @@
+#include <shmem.h>
 #include <stdio.h>
-#include <shmem.h> 
-
-long x = 10101;
 
 int main(void) {
-   int me, npes; 
-   long y = -1;
+  static long x = 10101;
+  long y = -1;
 
-   shmem_init();
+  shmem_init();
+  int mype = shmem_my_pe();
+  int npes = shmem_n_pes();
 
-   me = shmem_my_pe();
-   npes = shmem_n_pes();
-   if (me == 0)
-     y = shmem_long_g(&x, npes-1);
+  if (mype == 0)
+    y = shmem_g(&x, npes - 1);
 
-   printf("%d: y = %ld\n", me, y); 
+  printf("%d: y = %ld\n", mype, y);
 
-   shmem_finalize();  
-   return 0;
+  shmem_finalize();
+  return 0;
 }

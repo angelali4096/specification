@@ -3,11 +3,12 @@
 % Set header/footer for opening content
 \pagestyle{fancy}
 \fancyhead{}
-\fancyhead[LE,LO]{\insertDocVersion}
-%\fancyhead[CO,CE]{--- DRAFT ---}
-%\SetWatermarkText{DRAFT}
-%\SetWatermarkScale{1}
-\fancyfoot[CE,CO]{\thepage} %affects page numbering for the first pages, 
+\fancyhead[L]{\insertDocVersion}
+\fancyhead[C]{--- DRAFT ---}
+\SetWatermarkText{DRAFT}
+\SetWatermarkScale{1}
+\SetWatermarkLightness{.91}
+\fancyfoot[C]{\thepage} %affects page numbering for the first pages, 
                             %except the first ToC page
 
 \pagenumbering{roman} %sets coverpage and toc page numbers to roman numerals
@@ -15,18 +16,18 @@
 \input{content/coverpage}
 
 \setcounter{tocdepth}{4}
-\setcounter{secnumdepth}{3}
+\setcounter{secnumdepth}{4}
 \tableofcontents
 
 \mainmatter  % included for use of documenttype 'book' 
 
 % Set header/footer for main content
 \pagestyle{fancy}   %replacing {headings} with {fancy} for customization 
-\withlinenumbers    %adds line numbers to edges of normal pages
 \fancyhf{}
-\fancyhead[RE, LO]{\rightmark}
-\fancyhead[RO, LE]{\thepage}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{\thepage}
 \renewcommand{\headrulewidth}{0pt}
+\let\thesectionOrig\thesection % Used by backmatter to restore Annex numbering.
 \renewcommand{\thesection}{\arabic{section}}
 
 { %using setlength to force standardized spacing, if needed
@@ -34,4 +35,3 @@
 %\setlength{\baselineskip}{3pt plus 3pt minus 3pt}
 
 \setlength{\parskip}{3pt}
-

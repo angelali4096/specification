@@ -1,31 +1,21 @@
+#include <shmem.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <shmem.h>
 
-#define NUM_ELEMS 4
-long pSync[SHMEM_BCAST_SYNC_SIZE];
-long source[NUM_ELEMS], dest[NUM_ELEMS];
+int main(void) {
+  static long source[4], dest[4];
 
-int main(void)
-{
-   int i, me, npes;
+  shmem_init();
+  int mype = shmem_my_pe();
+  int npes = shmem_n_pes();
 
-   shmem_init();
-   me = shmem_my_pe();
-   npes = shmem_n_pes();
+  if (mype == 0)
+    for (int i = 0; i < 4; i++)
+      source[i] = i;
 
-   if (me == 0)
-      for (i = 0; i < NUM_ELEMS; i++)
-         source[i] = i;
-   for (i=0; i < SHMEM_BCAST_SYNC_SIZE; i++) {
-      pSync[i] = SHMEM_SYNC_VALUE;
-   }
-   shmem_barrier_all(); /* Wait for all PEs to initialize pSync */
+  shmem_broadcast(SHMEM_TEAM_WORLD, dest, source, 4, 0);
 
-   shmem_broadcast64(dest, source, NUM_ELEMS, 0, 0, 0, npes, pSync);
-   printf("%d: %ld", me, dest[0]);
-   for (i = 1; i < NUM_ELEMS; i++)
-      printf(", %ld", dest[i]);
-   printf("\n");
-   return 0;
+  printf("%d: %ld, %ld, %ld, %ld\n", mype, dest[0], dest[1], dest[2], dest[3]);
+  shmem_finalize();
+  return 0;
 }

@@ -1,31 +1,35 @@
+#include <shmem.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <shmem.h>
 
-long pSync[SHMEM_COLLECT_SYNC_SIZE];
-int source[2];
+int main(void) {
+  static long lock = 0;
 
-int main(void)
-{
-   int i, me, npes;
-   int *dest;
+  shmem_init();
+  int mype = shmem_my_pe();
+  int npes = shmem_n_pes();
+  int my_nelem = mype + 1; /* linearly increasing number of elements with PE */
+  int total_nelem = (npes * (npes + 1)) / 2;
 
-   shmem_init();
-   me = shmem_my_pe();
-   npes = shmem_n_pes();
+  int *source = (int *)shmem_malloc(npes * sizeof(int)); /* symmetric alloc */
+  int *dest = (int *)shmem_malloc(total_nelem * sizeof(int));
 
-   source[0] = me * 2;
-   source[1] = me * 2 + 1;
-   dest = (int *)shmem_malloc(sizeof(int) * npes * 2);
-   for (i=0; i < SHMEM_COLLECT_SYNC_SIZE; i++) {
-      pSync[i] = SHMEM_SYNC_VALUE;
-   }
-   shmem_barrier_all(); /* Wait for all PEs to initialize pSync */
+  for (int i = 0; i < my_nelem; i++)
+    source[i] = (mype * (mype + 1)) / 2 + i;
+  for (int i = 0; i < total_nelem; i++)
+    dest[i] = -9999;
 
-   shmem_collect32(dest, source, 2, 0, 0, npes, pSync);
-   printf("%d: %d", me, dest[0]);
-   for (i = 1; i < npes * 2; i++)
-      printf(", %d", dest[i]);
-   printf("\n");
-   return 0;
+  /* Wait for all PEs to initialize source/dest: */
+  shmem_team_sync(SHMEM_TEAM_WORLD);
+
+  shmem_int_collect(SHMEM_TEAM_WORLD, dest, source, my_nelem);
+
+  shmem_set_lock(&lock); /* Lock prevents interleaving printfs */
+  printf("%d: %d", mype, dest[0]);
+  for (int i = 1; i < total_nelem; i++)
+    printf(", %d", dest[i]);
+  printf("\n");
+  shmem_clear_lock(&lock);
+  shmem_finalize();
+  return 0;
 }

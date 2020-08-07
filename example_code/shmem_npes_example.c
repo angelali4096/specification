@@ -1,17 +1,11 @@
-#include <stdio.h>
 #include <shmem.h>
+#include <stdio.h>
 
-int main(void)
-{
-  int npes;
-
+int main(void) {
   shmem_init();
-  
-  npes = shmem_n_pes();
-
-  if (shmem_my_pe() == 0) {
-    printf("Number of PEs executing this program is: %d\n", npes);
-  }
-
+  int mype = shmem_my_pe();
+  int npes = shmem_n_pes();
+  printf("I am #%d of %d PEs executing this program\n", mype, npes);
+  shmem_finalize();
   return 0;
 }
